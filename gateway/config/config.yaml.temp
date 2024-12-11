@@ -1,0 +1,10 @@
+DB:
+  name: mock_gt_pq_ns_iop
+  username: username
+  password: password
+  host: localhost
+
+Security:
+  asymmetric_cryptography_type: PQ # It could be PQ or ECC
+  login_type: PASSWORD # It could be PASSWORD or ENV
+  mldsa_scheme: ML-DSA-65

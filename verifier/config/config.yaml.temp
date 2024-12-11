@@ -1,0 +1,10 @@
+DB:
+  name: mock_vfr_pq_ns_iop
+  username: username
+  password: password
+  host: localhost
+
+Security:
+  login_type: PASSWORD # It could be PASSWORD or ENV
+  mldsa_scheme: ML-DSA-65
+  mlkem_scheme: ML-KEM-768
