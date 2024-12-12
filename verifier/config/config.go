@@ -9,6 +9,8 @@ import (
 type Config struct {
 	DB       DB       `yaml:"DB"`
 	Security Security `yaml:"Security"`
+	Server   Server   `yaml:"Server"`
+	User     User     `yaml:"User"`
 	// Ensure this matches the YAML key
 }
 
@@ -23,6 +25,16 @@ type Security struct {
 	LoginType   string `yaml:"login_type"`
 	MlDSAScheme string `yaml:"mldsa_scheme"`
 	MlKEMScheme string `yaml:"mlkem_scheme"`
+}
+
+type Server struct {
+	Protocol   string `yaml:"protocol"`
+	Port       string `yaml:"port"`
+	BufferSize int    `yaml:"buffer_size"`
+}
+
+type User struct {
+	Password string `yaml:"password"`
 }
 
 func ReadYaml() (*Config, error) {

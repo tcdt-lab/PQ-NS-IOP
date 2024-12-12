@@ -1,4 +1,4 @@
-package protocol
+package pkg
 
 import (
 	"test.org/cryptography/pkg/asymmetric"
@@ -14,6 +14,7 @@ func generateSymmetricKeyStr() string {
 	keyDerivation := symmetric.PBKDF2{}
 	salt := []byte("salt")
 	iterations := 4096
+
 	aes := symmetric.AesGcm{}
 	key := keyDerivation.KeyDerivation([]byte("password"), salt, iterations)
 	keyB64 := aes.ConvertKeyBytesToStr64(key)
@@ -31,7 +32,8 @@ func generateTicketSymmetricKeyStr() string {
 }
 
 func messageInfoGenerator() MessageInfo {
-	msgData := MessageInfo{OperationTypeId: 1, Params: "test_params", SourceId: "sourceId", DestinationId: "DestinationId", Nonce: 4441}
+
+	msgData := MessageInfo{OperationTypeId: 1, Params: "params", SourceId: "sourceId", DestinationId: "DestinationId", Nonce: 4441}
 	return msgData
 }
 
@@ -47,21 +49,22 @@ func ticketGenerator() Ticket {
 
 func messageUtilGenerator() MessageUtil {
 	var util MessageUtil
-	util.aesHandler = symmetric.AesGcm{}
-	util.asymmetricHandler = asymmetric.NewAsymmetricHandler("PQ")
-	util.hmacHandler = symmetric.HMAC{}
+	util.AesHandler = symmetric.AesGcm{}
+	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler("PQ")
+	util.HmacHandler = symmetric.HMAC{}
 	return util
 }
 
 func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 	// Arrange
 	util := messageUtilGenerator()
-	secKeyStr, pubKeyStr, err := util.asymmetricHandler.DSKeyGen("ML-DSA-65")
+	secKeyStr, pubKeyStr, err := util.AsymmetricHandler.DSKeyGen("ML-DSA-65")
 	assert.NoError(t, err, "Error in DSKeyGen")
 	msg := messageDataGenerator()
 	key := generateSymmetricKeyStr()
 	ticket := ticketGenerator()
 	finalMsg := Message{}
+	util.RegisterInterfacesInGob()
 	var encryptedMsgStr string
 	t.Run("Test Encrypt Message", func(t *testing.T) {
 		err := util.SignMessageInfo(&msg, secKeyStr, "ML-DSA-65")
@@ -99,6 +102,7 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 		assert.NoError(t, err, "Error in VerifyHmac")
 		assert.True(t, result, "HMAC verification failed")
 		t.Log("HMAC Verified")
+		t.Log(decryptedMsg.MsgInfo.Params)
 	})
 
 }

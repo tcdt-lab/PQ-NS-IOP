@@ -1,18 +1,20 @@
-package protocol
+package pkg
 
 import (
 	"time"
 )
 
 const (
-	INIT_OPEARTION_ID                = 1
-	INIT_RESPONSE_OPERATION_ID       = 2
-	INIT_RESPONSE_OPERATION_ERROR_ID = 3
+	GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID = 1
+
+	GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID = 2
+	INIT_RESPONSE_OPERATION_ERROR_ID                        = 3
 )
 
 type Message struct {
-	Data      string "json:data"
-	MsgTicket string "json:ticket"
+	IsEncrypted bool   "json:isEncrypted"
+	Data        string "json:data"
+	MsgTicket   string "json:ticket"
 }
 type MessageData struct {
 	MsgInfo   MessageInfo "json:data"

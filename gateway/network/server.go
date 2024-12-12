@@ -3,14 +3,15 @@ package network
 import (
 	"bytes"
 	"encoding/hex"
-	"gateway/messages"
+	"protocol/pkg"
+
 	"go.uber.org/zap"
 	"io"
 	"net"
 )
 
 type Server struct {
-	messageParser *messages.MessageUtil
+	messageParser pkg.Message
 }
 
 func (s *Server) StartSocketServer(port string) error {
