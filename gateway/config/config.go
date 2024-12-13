@@ -20,9 +20,20 @@ type DB struct {
 }
 
 type Security struct {
-	AsymmetricCryptographyType string `yaml:"asymmetric_cryptography_type"`
-	LoginType                  string `yaml:"login_type"`
-	MlDSAScheme                string `yaml:"mldsa_scheme"`
+	LoginType          string `yaml:"login_type"`
+	DSAScheme          string `yaml:"dsa_scheme"`
+	KEMScheme          string `yaml:"kem_scheme"`
+	CryptographyScheme string `yaml:"cryptography_scheme"`
+}
+
+type Server struct {
+	Protocol   string `yaml:"protocol"`
+	Port       string `yaml:"port"`
+	BufferSize int    `yaml:"buffer_size"`
+}
+
+type User struct {
+	Password string `yaml:"password"`
 }
 
 func ReadYaml() (*Config, error) {

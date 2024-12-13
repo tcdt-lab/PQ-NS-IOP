@@ -3,6 +3,7 @@ package data
 import (
 	b64 "encoding/base64"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"test.org/cryptography/pkg/asymmetric"
 	"test.org/cryptography/pkg/symmetric"
 	"test.org/protocol/pkg"
@@ -37,7 +38,7 @@ func generateVerifierUSerModels(protocolUtil pkg.ProtocolUtil, c *config.Config)
 	verifierUser1.SecretKeySig = secKeySig1
 
 	verifierUser2.Salt = b64.StdEncoding.EncodeToString([]byte("salt2"))
-	verifierUser2.Password = "kk1234"
+	verifierUser2.Password = os.Getenv("PQ_NS_IOP_VU_PASS")
 	secKeySig2, pubKeySig2, err := protocolUtil.AsymmetricHandler.DSKeyGen(c.Security.MlDSAScheme)
 	if err != nil {
 		panic(err)
@@ -113,4 +114,16 @@ func Test_CrudVerifierUserModel(t *testing.T) {
 		assert.NotEqual(t, verifierUserList[0].Id, verifierUser1.Id, "Expected different verifier_verifier user")
 
 	})
+}
+
+func Test_RemoveandGenerateAddUser(t *testing.T) {
+	c, err := config.ReadYaml()
+	assert.NoError(t, err, "Error in ReadYaml")
+	_, verifierUser2 := generateVerifierUSerModels(generateProtocolUtil(c), c)
+	db, err := getDBConnection(*c)
+	assert.NoError(t, err, "Error opening database")
+	user, err := GetVerifierUserByPassword(db, verifierUser2.Password)
+	DeleteVerifierUser(db, user.Id)
+	_, err = AddVerifierUser(&verifierUser2, db)
+
 }

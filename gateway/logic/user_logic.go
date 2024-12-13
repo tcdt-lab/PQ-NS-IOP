@@ -38,7 +38,7 @@ func Login(db *sql.DB) (bool, []byte) {
 			fmt.Scanln(&rawPassword)
 			credentialResult, user := checkCredentials(db, firstFivePublicKey, rawPassword)
 			if credentialResult {
-				fmt.Println("User signed in successfully")
+				fmt.Println("GatewayUser signed in successfully")
 				return true, extractUserAESKey(rawPassword, user.Salt)
 
 			}
@@ -52,7 +52,7 @@ func Login(db *sql.DB) (bool, []byte) {
 				zap.L().Error("Error while creating logic", zap.Error(err))
 				return false, nil
 			}
-			fmt.Println("User signed in successfully")
+			fmt.Println("GatewayUser signed in successfully")
 			return true, extractUserAESKey(rawPassword, user.Salt)
 		}
 
@@ -68,64 +68,64 @@ func Login(db *sql.DB) (bool, []byte) {
 	return false, nil
 }
 
-func CreateUser(password string, db *sql.DB) (data.User, error) {
+func CreateUser(password string, db *sql.DB) (data.GatewayUser, error) {
 	keyDrivation := symmetric.PBKDF2{}
 	salt, _ := keyDrivation.GeneratingSalt(8)
 	var mldsa = pq.MLDSA{}
 	c, err := config.ReadYaml()
 	if err != nil {
 		zap.L().Error("Error while reading config.yaml file", zap.Error(err))
-		return data.User{}, err
+		return data.GatewayUser{}, err
 	}
 	publicKey, secretKey, err := mldsa.KeyGen(c.Security.MlDSAScheme)
 	if err != nil {
 		zap.L().Error("Error while generating ML-DSA keys", zap.Error(err))
-		return data.User{}, err
+		return data.GatewayUser{}, err
 	}
 	pkStr64 := mldsa.ConvertPubKeyToBase64String(publicKey)
 	encodedSalt := b64.StdEncoding.EncodeToString(salt)
 	secKeyBytes, _ := secretKey.MarshalBinary()
 	encodedSecKey, err := secKeyEncryption(secKeyBytes, password, encodedSalt)
 	if err != nil {
-		return data.User{}, err
+		return data.GatewayUser{}, err
 	}
-	user := data.User{Password: userPasswordEncoder(password), PublicKey: pkStr64, SecretKey: encodedSecKey, Salt: encodedSalt}
+	user := data.GatewayUser{Password: userPasswordEncoder(password), PublicKey: pkStr64, SecretKey: encodedSecKey, Salt: encodedSalt}
 	_, errAdd := data.AddUser(db, user)
 	if errAdd != nil {
-		return data.User{}, errAdd
+		return data.GatewayUser{}, errAdd
 	}
-	fmt.Println("User created successfully")
+	fmt.Println("GatewayUser created successfully")
 	fmt.Println("first five characters of your encoded public key: ", user.PublicKey[:5])
 	return user, nil
 
 }
 
 // Password parameter is the raw password
-func checkCredentialsWithPass(db *sql.DB, rawPassword string) (bool, data.User) {
+func checkCredentialsWithPass(db *sql.DB, rawPassword string) (bool, data.GatewayUser) {
 
 	user, err := data.GetUserByPassword(db, userPasswordEncoder(rawPassword))
 	if err != nil {
 		zap.L().Error("Error while getting user by password", zap.Error(err))
-		return false, data.User{}
+		return false, data.GatewayUser{}
 	}
 	if user.Password == userPasswordEncoder(rawPassword) {
 		return true, user
 	}
-	return false, data.User{}
+	return false, data.GatewayUser{}
 }
 
 // Password parameter is the raw password
-func checkCredentials(db *sql.DB, firstFivePublicKey string, rawPassword string) (bool, data.User) {
+func checkCredentials(db *sql.DB, firstFivePublicKey string, rawPassword string) (bool, data.GatewayUser) {
 
 	user, err := data.GetUserByPassword(db, userPasswordEncoder(rawPassword))
 	if err != nil {
 		zap.L().Error("Error while getting user by password", zap.Error(err))
-		return false, data.User{}
+		return false, data.GatewayUser{}
 	}
 	if user.Password == userPasswordEncoder(rawPassword) && user.PublicKey[:5] == firstFivePublicKey {
 		return true, user
 	}
-	return false, data.User{}
+	return false, data.GatewayUser{}
 }
 
 // Input salt is b64 encoded

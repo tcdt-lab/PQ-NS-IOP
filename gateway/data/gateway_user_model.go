@@ -1,69 +1,65 @@
 package data
 
-import (
-	"database/sql"
-	"go.uber.org/zap"
-)
+import "database/sql"
 
-type User struct {
-	Id        int
-	Password  string
-	PublicKey string
-	SecretKey string
-	Salt      string
+type GatewayUser struct {
+	Id           int
+	Salt         string
+	Password     string
+	PublicKeyDsa string
+	SecretKeyDsa string
+	PublicKeyKem string
+	SecretKeyKem string
+	Dsa_scheme   string
+	Kem_scheme   string
 }
 
-func GetUser(db *sql.DB, id int) (User, error) {
-	var user User
-	rows := db.QueryRow("SELECT * FROM gateway_user WHERE Id = ?", id)
-	if err := rows.Scan(&user.Id, &user.Password, &user.PublicKey, &user.SecretKey, &user.Salt); err != nil {
-		zap.L().Error("Error getting user", zap.Error(err))
-		return User{}, err
-	}
-	return user, nil
-}
-
-func AddUser(db *sql.DB, user User) (int64, error) {
-	result, err := db.Exec("INSERT INTO gateway_user (Password, PublicKey, secret_key, Salt) VALUES (?, ?, ?, ?)", user.Password, user.PublicKey, user.SecretKey, user.Salt)
+func AddNewGatewayUser(db *sql.DB, user GatewayUser) (int64, error) {
+	result, err := db.Exec("INSERT INTO gateway_user (salt, password, public_key_dsa, secret_key_dsa, public_key_kem, secret_key_kem, dsa_scheme, kem_scheme) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", user.Salt, user.Password, user.PublicKeyDsa, user.SecretKeyDsa, user.PublicKeyKem, user.SecretKeyKem, user.Dsa_scheme, user.Kem_scheme)
 	if err != nil {
-		zap.L().Error("Error adding user", zap.Error(err))
 		return 0, err
 	}
 	return result.LastInsertId()
 }
 
-func UpdateUser(db *sql.DB, user User) (int64, error) {
-	result, err := db.Exec("UPDATE gateway_user SET Password = ?, PublicKey = ?, secret_key = ?, Salt = ? WHERE Id = ?", user.Password, user.PublicKey, user.SecretKey, user.Salt, user.Id)
+func UpdateGatewayUser(db *sql.DB, user GatewayUser) (int64, error) {
+	result, err := db.Exec("UPDATE gateway_user SET salt = ?, password = ?, public_key_dsa = ?, secret_key_dsa = ?, public_key_kem = ?, secret_key_kem = ?, dsa_scheme = ?, kem_scheme = ? WHERE id = ?", user.Salt, user.Password, user.PublicKeyDsa, user.SecretKeyDsa, user.PublicKeyKem, user.SecretKeyKem, user.Dsa_scheme, user.Kem_scheme, user.Id)
 	if err != nil {
-		zap.L().Error("Error updating user", zap.Error(err))
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func RemoveUser(db *sql.DB, id int) (int64, error) {
-	result, err := db.Exec("DELETE FROM gateway_user WHERE Id = ?", id)
+func DeleteGatewayUser(db *sql.DB, id int) (int64, error) {
+	result, err := db.Exec("DELETE FROM gateway_user WHERE id = ?", id)
 	if err != nil {
-		zap.L().Error("Error deleting user", zap.Error(err))
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func GetUsers(db *sql.DB) ([]User, error) {
+func GetGatewayUser(db *sql.DB, id int) (GatewayUser, error) {
+	var user GatewayUser
+	rows := db.QueryRow("SELECT * FROM gateway_user WHERE id = ?", id)
+	err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
 
+func GetAllGatewayUsers(db *sql.DB) ([]GatewayUser, error) {
 	rows, err := db.Query("SELECT * FROM gateway_user")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	users := []User{}
+	users := []GatewayUser{}
 
 	for rows.Next() {
-		var user User
-		if err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKey, &user.SecretKey); err != nil {
-			zap.L().Error("Error getting all users", zap.Error(err))
+		var user GatewayUser
+		if err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -71,32 +67,29 @@ func GetUsers(db *sql.DB) ([]User, error) {
 	return users, nil
 }
 
-func GetUserByPublicKey(db *sql.DB, publicKey string) (User, error) {
-	var user User
-	rows := db.QueryRow("SELECT * FROM gateway_user WHERE Public_Key = ?", publicKey)
-	if err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKey, &user.SecretKey); err != nil {
-		zap.L().Error("Error getting user by public key", zap.Error(err))
-		return User{}, err
+func GetGatewayUserByPassword(db *sql.DB, password string) (GatewayUser, error) {
+	var user GatewayUser
+	err := db.QueryRow("SELECT * FROM gateway_user WHERE password = ?", password).Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme)
+	if err != nil {
+		return user, err
 	}
 	return user, nil
 }
 
-func GetUserByPassword(db *sql.DB, password string) (User, error) {
-	var user User
-	rows := db.QueryRow("SELECT * FROM gateway_user WHERE Password = ?", password)
-	if err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKey, &user.SecretKey); err != nil {
-		zap.L().Error("Error getting user by password", zap.Error(err))
-		return User{}, err
+func GetGatewayUserByPublicKeyDsa(db *sql.DB, publicKeyDsa string) (GatewayUser, error) {
+	var user GatewayUser
+	err := db.QueryRow("SELECT * FROM gateway_user WHERE public_key_dsa = ?", publicKeyDsa).Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme)
+	if err != nil {
+		return user, err
 	}
 	return user, nil
 }
 
-func GetUserByID(db *sql.DB, id int) (User, error) {
-	var user User
-	rows := db.QueryRow("SELECT * FROM gateway_user WHERE Id = ?", id)
-	if err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKey, &user.SecretKey); err != nil {
-		zap.L().Error("Error getting user by Id", zap.Error(err))
-		return User{}, err
+func GetGatewayUserByPublicKeyKem(db *sql.DB, publicKeyKem string) (GatewayUser, error) {
+	var user GatewayUser
+	err := db.QueryRow("SELECT * FROM gateway_user WHERE public_key_kem = ?", publicKeyKem).Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme)
+	if err != nil {
+		return user, err
 	}
 	return user, nil
 }

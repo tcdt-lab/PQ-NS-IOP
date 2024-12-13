@@ -2,6 +2,7 @@ package gateway_verifier
 
 import (
 	b64 "encoding/base64"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"test.org/protocol/pkg/gateway_verifier"
 
@@ -20,27 +21,37 @@ const (
 )
 
 func MessageUtilGenerator() pkg.ProtocolUtil {
+	c, err := config.ReadYaml()
+	fmt.Println(err)
 	var util pkg.ProtocolUtil
 	util.AesHandler = symmetric.AesGcm{}
-	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler("ECC")
+	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler(c.Security.CryptographyScheme)
 	util.HmacHandler = symmetric.HMAC{}
 	util.RegisterInterfacesInGob()
 	return util
 }
 func generatePublicKeyDSA() (string, string) {
 	msgUti := MessageUtilGenerator()
-	secKey, pubKey, _ := msgUti.AsymmetricHandler.DSKeyGen(ECC_DSA_SCHEME)
+	c, err := config.ReadYaml()
+	fmt.Println(err)
+	secKey, pubKey, _ := msgUti.AsymmetricHandler.DSKeyGen(c.Security.MlDSAScheme)
 	return secKey, pubKey
 }
 
 func generatePublicKeyKEM() (string, string) {
 	msgUti := MessageUtilGenerator()
-	secKey, pubKey, _ := msgUti.AsymmetricHandler.KEMKeyGen(ECC_KEM_SCHEME)
+	c, err := config.ReadYaml()
+	fmt.Println(err)
+
+	secKey, pubKey, _ := msgUti.AsymmetricHandler.KEMKeyGen(c.Security.MlKEMScheme)
 	return secKey, pubKey
 }
 func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
+	c, err := config.ReadYaml()
+	fmt.Println(err)
+
 	msgParams := gateway_verifier.GatewayVerifierKeyDistributionRequest{}
 	msgutil := MessageUtilGenerator()
 	dsaSecKey, dsaPubKey := generatePublicKeyDSA()
@@ -50,8 +61,8 @@ func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
 	msgParams.GatewayCompanyName = "company"
 	msgParams.GatewayPort = "8000"
 	msgParams.GatewayIP = "127.0.0.1"
-	msgParams.GatewaySignatureScheme = ECC_DSA_SCHEME
-	msgParams.GatewayKemScheme = ECC_KEM_SCHEME
+	msgParams.GatewaySignatureScheme = c.Security.MlDSAScheme
+	msgParams.GatewayKemScheme = c.Security.MlKEMScheme
 	msgParams.GatewayPublicKeySignature = dsaPubKey
 	msgParams.GatewayPublicKeyKem = kemPubKey
 
@@ -59,7 +70,8 @@ func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
 	msgInfo.Nonce = 123
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID
 	msgData.MsgInfo = msgInfo
-	msgutil.SignMessageInfo(&msgData, dsaSecKey, ECC_DSA_SCHEME)
+	err = msgutil.SignMessageInfo(&msgData, dsaSecKey, c.Security.MlDSAScheme)
+	fmt.Println(err)
 	return msgData, kemSecKey
 }
 func TestGatewayVerifierKeyDistributionHandler(t *testing.T) {
@@ -105,4 +117,5 @@ func TestGatewayVerifierKeyDistributionHandler(t *testing.T) {
 			t.Log(responseParam.OperationError)
 		}
 	})
+
 }
