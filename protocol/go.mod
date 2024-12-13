@@ -1,4 +1,4 @@
-module protocol
+module test.org/protocol
 
 go 1.23.2
 

@@ -18,9 +18,9 @@ func NewAsymmetricHandler(cryptographyType string) AsymmetricHandler {
 
 	switch cryptographyType {
 	case "ECC":
-		return &ecc.Ecc_handler{}
+		return &ecc.Ecc_handler{&ecc.Ecc_dh{}, &ecc.Ecc_dsa{}}
 	case "PQ":
-		return &pq.Pq_handler{}
+		return &pq.Pq_handler{Mldsa: &pq.MLDSA{}, Mlkem: &pq.MLKEM{}}
 	default:
 		return nil
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestEcc_dh_DHKeyGen(t *testing.T) {
-	var e ecc_dh
+	var e Ecc_dh
 	t.Run("Test DHKeyGen_x", func(t *testing.T) {
 		secKEy, pubKey, err := e.DHKeyGen("x25519")
 		assert.NoError(t, err, "Error in DHKeyGen")
@@ -36,7 +36,7 @@ func TestEcc_dh_DHKeyGen(t *testing.T) {
 }
 
 func TestEcc_dhString(t *testing.T) {
-	var e ecc_dh
+	var e Ecc_dh
 	t.Run("Test ConvertSecretKeyToBase64String", func(t *testing.T) {
 		secKey, _, err := e.DHKeyGen("x25519")
 		assert.NoError(t, err, "Error in DHKeyGen")

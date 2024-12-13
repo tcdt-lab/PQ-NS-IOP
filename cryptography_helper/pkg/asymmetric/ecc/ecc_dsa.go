@@ -9,10 +9,10 @@ import (
 	"errors"
 )
 
-type ecc_dsa struct {
+type Ecc_dsa struct {
 }
 
-func (ecc_dsa) DSKeyGen(schemeName string) (privKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey, err error) {
+func (Ecc_dsa) DSKeyGen(schemeName string) (privKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey, err error) {
 	if schemeName == "p256" {
 		secKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
@@ -40,7 +40,7 @@ func (ecc_dsa) DSKeyGen(schemeName string) (privKey *ecdsa.PrivateKey, pubKey *e
 
 }
 
-func (e *ecc_dsa) UnmarshalPublicKey(pubKey []byte) (*ecdsa.PublicKey, error) {
+func (e *Ecc_dsa) UnmarshalPublicKey(pubKey []byte) (*ecdsa.PublicKey, error) {
 
 	publicKey, err := x509.ParsePKIXPublicKey(pubKey)
 	if err != nil {
@@ -48,7 +48,7 @@ func (e *ecc_dsa) UnmarshalPublicKey(pubKey []byte) (*ecdsa.PublicKey, error) {
 	}
 	return publicKey.(*ecdsa.PublicKey), nil
 }
-func (e *ecc_dsa) UnmarshalSecretKey(secKey []byte) (*ecdsa.PrivateKey, error) {
+func (e *Ecc_dsa) UnmarshalSecretKey(secKey []byte) (*ecdsa.PrivateKey, error) {
 	privateKey, err := x509.ParseECPrivateKey(secKey)
 	if err != nil {
 		return nil, err
@@ -56,14 +56,14 @@ func (e *ecc_dsa) UnmarshalSecretKey(secKey []byte) (*ecdsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func (e *ecc_dsa) MarshalSecretKey(secKey *ecdsa.PrivateKey) ([]byte, error) {
+func (e *Ecc_dsa) MarshalSecretKey(secKey *ecdsa.PrivateKey) ([]byte, error) {
 	return x509.MarshalECPrivateKey(secKey)
 }
-func (e *ecc_dsa) MarshalPublicKey(pubKey *ecdsa.PublicKey) ([]byte, error) {
+func (e *Ecc_dsa) MarshalPublicKey(pubKey *ecdsa.PublicKey) ([]byte, error) {
 	return x509.MarshalPKIXPublicKey(pubKey)
 }
 
-func (e *ecc_dsa) Sign(messages []byte, secKey *ecdsa.PrivateKey) ([]byte, error) {
+func (e *Ecc_dsa) Sign(messages []byte, secKey *ecdsa.PrivateKey) ([]byte, error) {
 	signedBytes, err := ecdsa.SignASN1(rand.Reader, secKey, messages)
 	if err != nil {
 		return nil, err
@@ -71,16 +71,16 @@ func (e *ecc_dsa) Sign(messages []byte, secKey *ecdsa.PrivateKey) ([]byte, error
 	return signedBytes, nil
 }
 
-func (e *ecc_dsa) Verify(pubKey *ecdsa.PublicKey, messages []byte, signature []byte) (bool, error) {
+func (e *Ecc_dsa) Verify(pubKey *ecdsa.PublicKey, messages []byte, signature []byte) (bool, error) {
 	return ecdsa.VerifyASN1(pubKey, messages, signature), nil
 }
 
-func (e *ecc_dsa) ConvertPublicKeyToBase64String(pubKey *ecdsa.PublicKey) string {
+func (e *Ecc_dsa) ConvertPublicKeyToBase64String(pubKey *ecdsa.PublicKey) string {
 	pubKeyBytes, _ := x509.MarshalPKIXPublicKey(pubKey)
 	return b64.StdEncoding.EncodeToString(pubKeyBytes)
 }
 
-func (e *ecc_dsa) ConvertBase64StringToPublicKey(pubKeyStr string) (*ecdsa.PublicKey, error) {
+func (e *Ecc_dsa) ConvertBase64StringToPublicKey(pubKeyStr string) (*ecdsa.PublicKey, error) {
 	pubKeyBytes, err := b64.StdEncoding.DecodeString(pubKeyStr)
 	if err != nil {
 		return nil, err
@@ -92,12 +92,12 @@ func (e *ecc_dsa) ConvertBase64StringToPublicKey(pubKeyStr string) (*ecdsa.Publi
 	return pubKey, nil
 }
 
-func (e *ecc_dsa) ConvertSecretKeyToBase64String(secKey *ecdsa.PrivateKey) string {
+func (e *Ecc_dsa) ConvertSecretKeyToBase64String(secKey *ecdsa.PrivateKey) string {
 	secKeyBytes, _ := x509.MarshalECPrivateKey(secKey)
 	return b64.StdEncoding.EncodeToString(secKeyBytes)
 }
 
-func (e *ecc_dsa) ConvertBase64StringToSecretKey(secKeyStr string) (*ecdsa.PrivateKey, error) {
+func (e *Ecc_dsa) ConvertBase64StringToSecretKey(secKeyStr string) (*ecdsa.PrivateKey, error) {
 	secKeyBytes, err := b64.StdEncoding.DecodeString(secKeyStr)
 	if err != nil {
 		return nil, err

@@ -6,7 +6,7 @@ import (
 )
 
 func Test_MarshalingUnmarshaling(t *testing.T) {
-	eccdsa := ecc_dsa{}
+	eccdsa := Ecc_dsa{}
 	var marshalledPubKey []byte
 	var marshalledSecKey []byte
 	t.Run("Test MarshalUnMarshalPublicKey", func(t *testing.T) {
@@ -38,7 +38,7 @@ func Test_MarshalingUnmarshaling(t *testing.T) {
 }
 
 func Test_SignVerify(t *testing.T) {
-	eccdsa := ecc_dsa{}
+	eccdsa := Ecc_dsa{}
 	t.Run("Test SignVerify", func(t *testing.T) {
 		// Act
 		secKey, pubKey, err := eccdsa.DSKeyGen("p256")
@@ -57,7 +57,7 @@ func Test_SignVerify(t *testing.T) {
 }
 
 func TestStringKey(t *testing.T) {
-	eccdsa := ecc_dsa{}
+	eccdsa := Ecc_dsa{}
 	t.Run("Test StringKey", func(t *testing.T) {
 		// Act
 		secKey, pubKey, err := eccdsa.DSKeyGen("p256")

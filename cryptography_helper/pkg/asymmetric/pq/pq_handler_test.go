@@ -9,7 +9,7 @@ import (
 func TestPq_MLDSA(t *testing.T) {
 	handler := Pq_handler{&MLDSA{}, &MLKEM{}}
 
-	t.Run("mldsa", func(t *testing.T) {
+	t.Run("Mldsa", func(t *testing.T) {
 
 		schemeName := "ML-DSA-65"
 		msg := []byte("Hello World")
@@ -24,7 +24,7 @@ func TestPq_MLDSA(t *testing.T) {
 		assert.True(t, result, "Verification failed")
 	})
 
-	t.Run("mlkem", func(t *testing.T) {
+	t.Run("Mlkem", func(t *testing.T) {
 
 		schemeName := "ML-KEM-768"
 

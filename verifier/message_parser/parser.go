@@ -1,13 +1,12 @@
 package message_parser
 
 import (
-	"cryptography_helper/pkg/asymmetric"
-	"cryptography_helper/pkg/symmetric"
-	"database/sql"
 	b64 "encoding/base64"
 	"errors"
-	"protocol/pkg"
+	"test.org/protocol/pkg"
+
 	"verifier/message_parser/gateway_verifier"
+	"verifier/message_parser/util"
 
 	"verifier/config"
 	"verifier/data"
@@ -32,7 +31,7 @@ func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort st
 		if err != nil {
 			return nil, err
 		}
-		messageData, err = mp.decryptMessage(message.Data, symmetricKey)
+		messageData, err = mp.decryptMessage(message.Data, symmetricKey, c)
 		if err != nil {
 			return nil, err
 		}
@@ -67,9 +66,9 @@ func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort st
 	return mp.generateResponse(messageData, senderIp, senderPort, c)
 }
 
-func (mp *MessageParser) decryptMessage(msgData string, symmetricKey string) (pkg.MessageData, error) {
+func (mp *MessageParser) decryptMessage(msgData string, symmetricKey string, c config.Config) (pkg.MessageData, error) {
 
-	msgUtil := MessageUtilGenerator()
+	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
 	decryptedMsg, err := msgUtil.DecryptMessageData(msgData, symmetricKey)
 	if err != nil {
 		return pkg.MessageData{}, err
@@ -78,7 +77,7 @@ func (mp *MessageParser) decryptMessage(msgData string, symmetricKey string) (pk
 }
 
 func (mp *MessageParser) getSenderKeys(senderIp string, c config.Config) (string, string, error) {
-	db, err := GetDBConnection(c)
+	db, err := util.GetDBConnection(c)
 	if err != nil {
 		return "", "", err
 	}
@@ -101,20 +100,4 @@ func (mp *MessageParser) generateResponse(msgData pkg.MessageData, senderIp stri
 		return gateway_verifier.GatewayVerifierKeyDistributionHandler(msgData, c)
 	}
 	return nil, errors.New("Operation type not found")
-}
-func GetDBConnection(c config.Config) (*sql.DB, error) {
-	db, err := sql.Open("mysql", c.DB.Username+":"+c.DB.Password+"@/"+c.DB.Name)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func MessageUtilGenerator() pkg.MessageUtil {
-	var util pkg.MessageUtil
-	util.AesHandler = symmetric.AesGcm{}
-	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler("PQ")
-	util.HmacHandler = symmetric.HMAC{}
-	util.RegisterInterfacesInGob()
-	return util
 }

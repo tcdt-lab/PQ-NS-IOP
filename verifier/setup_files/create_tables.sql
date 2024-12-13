@@ -8,7 +8,7 @@ CREATE TABLE gateways (
     kem_scheme VARCHAR(30) NOT NULL,
     sig_scheme VARCHAR(30) NOT NULL,
     ticket TEXT,
-    symmetric_key VARCHAR(30)
+    symmetric_key TEXT
 );
 
 DROP TABLE verifiers;
@@ -18,7 +18,7 @@ CREATE TABLE verifiers (
     port VARCHAR(6) NOT NULL,
     public_key_sig TEXT NOT NULL,
     sig_scheme VARCHAR(30) NOT NULL,
-    symmetric_key VARCHAR(30),
+    symmetric_key TEXT,
     trust_Score double,
     is_in_committee BOOLEAN
 );

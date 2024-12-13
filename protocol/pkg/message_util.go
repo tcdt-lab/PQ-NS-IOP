@@ -5,7 +5,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/gob"
 	"go.uber.org/zap"
-	"protocol/pkg/gateway_verifier"
+	"test.org/protocol/pkg/gateway_verifier"
 
 	"test.org/cryptography/pkg/asymmetric"
 	"test.org/cryptography/pkg/symmetric"

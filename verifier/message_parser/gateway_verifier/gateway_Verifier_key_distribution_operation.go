@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"go.uber.org/zap"
-	"protocol/pkg"
+	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/data"
-	"verifier/message_parser"
+	"verifier/message_parser/util"
 
 	"verifier/config"
 )
@@ -17,8 +18,8 @@ func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Con
 	var gvKeyDistributionReq gateway_verifier.GatewayVerifierKeyDistributionRequest
 	gvKeyDistributionReq = msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
 	var gateway data.Gateway
-	msgUtil := message_parser.MessageUtilGenerator()
-	db, err := message_parser.GetDBConnection(c)
+	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
+	db, err := util.GetDBConnection(c)
 	if err != nil {
 		zap.L().Error("Error while getting db connection", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
@@ -32,7 +33,7 @@ func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Con
 
 	res, err2 := checkSignature(msgData, msgUtil, gateway)
 	if err2 != nil {
-		db, err := message_parser.GetDBConnection(c)
+		db, err := util.GetDBConnection(c)
 		if err != nil {
 			zap.L().Error("Error while getting db connection", zap.Error(err))
 			return generateErrorResponse(db, c, err, gateway.SigScheme)
@@ -53,21 +54,24 @@ func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Con
 	gateway.SymmetricKey = msgUtil.AesHandler.ConvertKeyBytesToStr64(sharedSymmetricKey)
 	_, err = data.AddGateway(db, gateway)
 	if err != nil {
+		fmt.Println(err)
 		zap.L().Error("Error while adding gateway", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
-	return generateResponse(gateway.SymmetricKey, cipherText, msgData.MsgInfo.Nonce)
+	return generateResponse(gateway.SymmetricKey, cipherText, msgData.MsgInfo.Nonce, c)
 
 }
 
 func checkSignature(msgData pkg.MessageData, msgUtil pkg.MessageUtil, gateway data.Gateway) (bool, error) {
 	if msgData.Signature != "" {
-		res, err := msgUtil.VerifyMessageDataSignature(msgData, gateway.PublicKeySig, gateway.PublicKeySig)
+		res, err := msgUtil.VerifyMessageDataSignature(msgData, gateway.PublicKeySig, gateway.SigScheme)
 		if err != nil {
 			return false, err
 		}
-
-		return res, errors.New("Signature verification failed")
+		if !res {
+			return res, errors.New("Signature verification failed")
+		}
+		return res, nil
 
 	} else {
 		return false, errors.New("No Signature found")
@@ -81,10 +85,10 @@ func generateErrorResponse(db *sql.DB, c config.Config, err error, schemeName st
 	var message pkg.Message
 	gvKeyDistributionReq.CipherText = ""
 	gvKeyDistributionReq.OperationError = err.Error()
-	messageInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID
+	messageInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_OPERATION_ERROR_ID
 	messageInfo.Params = gvKeyDistributionReq
 	messgaeData.MsgInfo = messageInfo
-	msgUtil := message_parser.MessageUtilGenerator()
+	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
 	privateKeyStr, err := getUserPrivateKey(db, c)
 	if err != nil {
 		return nil, err
@@ -117,9 +121,9 @@ func getUserPrivateKey(db *sql.DB, c config.Config) (string, error) {
 
 }
 
-func generateResponse(symmetricKey string, cipherText []byte, nonce int) ([]byte, error) {
+func generateResponse(symmetricKey string, cipherText []byte, nonce int, c config.Config) ([]byte, error) {
 	var gvKeyDistributionReq gateway_verifier.GatewayVerifierKeyDistributionResponse
-	msgUtil := message_parser.MessageUtilGenerator()
+	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
 	var messageInfo pkg.MessageInfo
 	var messgaeData pkg.MessageData
 	var message pkg.Message

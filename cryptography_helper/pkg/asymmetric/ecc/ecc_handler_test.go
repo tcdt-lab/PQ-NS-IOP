@@ -6,7 +6,7 @@ import (
 )
 
 func TestEDSA(t *testing.T) {
-	ecc := Ecc_handler{&ecc_dh{}, &ecc_dsa{}}
+	ecc := Ecc_handler{&Ecc_dh{}, &Ecc_dsa{}}
 
 	t.Run("p256", func(t *testing.T) {
 		schemeName := "p256"
@@ -61,7 +61,7 @@ func TestEDSA(t *testing.T) {
 }
 
 func TestECDH(t *testing.T) {
-	ecc := Ecc_handler{&ecc_dh{}, &ecc_dsa{}}
+	ecc := Ecc_handler{&Ecc_dh{}, &Ecc_dsa{}}
 
 	t.Run("SharedSecretGenerating", func(t *testing.T) {
 		sk, pk, err := ecc.KEMKeyGen("x25519")

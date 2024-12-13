@@ -22,9 +22,10 @@ type DB struct {
 }
 
 type Security struct {
-	LoginType   string `yaml:"login_type"`
-	MlDSAScheme string `yaml:"mldsa_scheme"`
-	MlKEMScheme string `yaml:"mlkem_scheme"`
+	LoginType          string `yaml:"login_type"`
+	MlDSAScheme        string `yaml:"mldsa_scheme"`
+	MlKEMScheme        string `yaml:"mlkem_scheme"`
+	CryptographyScheme string `yaml:"cryptography_scheme"`
 }
 
 type Server struct {
