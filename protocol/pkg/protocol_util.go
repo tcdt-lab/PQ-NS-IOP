@@ -11,19 +11,20 @@ import (
 	"test.org/cryptography/pkg/symmetric"
 )
 
-type MessageUtil struct {
+type ProtocolUtil struct {
 	AsymmetricHandler asymmetric.AsymmetricHandler
 	AesHandler        symmetric.AesGcm
 	HmacHandler       symmetric.HMAC
 }
 
-func (mp *MessageUtil) RegisterInterfacesInGob() {
+func (mp *ProtocolUtil) RegisterInterfacesInGob() {
+	gob.Register(ErrorParams{})
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionRequest{})
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionResponse{})
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message
-func (mp *MessageUtil) VerifyMessageDataSignature(msg MessageData, pubKeyStr string, schemeName string) (bool, error) {
+func (mp *ProtocolUtil) VerifyMessageDataSignature(msg MessageData, pubKeyStr string, schemeName string) (bool, error) {
 
 	signatureBytes, err := b64.StdEncoding.DecodeString(msg.Signature)
 	if err != nil {
@@ -42,14 +43,14 @@ func (mp *MessageUtil) VerifyMessageDataSignature(msg MessageData, pubKeyStr str
 
 // SignMessageInfo Gets A message and signs the message
 // It returns A message with signature field filled
-func (mp *MessageUtil) SignMessageInfo(msg *MessageData, secKeyStr string, schemeName string) error {
+func (mp *ProtocolUtil) SignMessageInfo(msg *MessageData, secKeyStr string, schemeName string) error {
 	dataMsgBytes, err := mp.ConvertMessageInfoToByte(msg.MsgInfo)
 	if err != nil {
 		return err
 	}
 	response, err := mp.AsymmetricHandler.Sign(secKeyStr, dataMsgBytes, schemeName)
 	if err != nil {
-		zap.L().Error("Error while signing the message", zap.Error(err))
+		zap.L().Error("ErrorParams while signing the message", zap.Error(err))
 		return err
 	}
 	msg.Signature = b64.StdEncoding.EncodeToString(response)
@@ -57,7 +58,7 @@ func (mp *MessageUtil) SignMessageInfo(msg *MessageData, secKeyStr string, schem
 }
 
 // DecryptMessageData Gets A message as byte string and decrypts the message
-func (mp *MessageUtil) DecryptMessageData(msg string, symmetricKey string) (MessageData, error) {
+func (mp *ProtocolUtil) DecryptMessageData(msg string, symmetricKey string) (MessageData, error) {
 
 	msgBytes, err := b64.StdEncoding.DecodeString(msg)
 	if err != nil {
@@ -79,7 +80,7 @@ func (mp *MessageUtil) DecryptMessageData(msg string, symmetricKey string) (Mess
 }
 
 // It gets A message and encrypts the message and retun it as A byte array
-func (mp *MessageUtil) EncryptMessageData(msg MessageData, symmetricKey string) (string, error) {
+func (mp *ProtocolUtil) EncryptMessageData(msg MessageData, symmetricKey string) (string, error) {
 
 	keyByte, err := mp.AesHandler.ConvertKeyStr64ToBytes(symmetricKey)
 	if err != nil {
@@ -99,7 +100,7 @@ func (mp *MessageUtil) EncryptMessageData(msg MessageData, symmetricKey string) 
 
 // It gets A message data produces HMAC for the message
 // It returns A message with filled hmac
-func (mp *MessageUtil) GenerateHmac(msg *MessageData, key string) error {
+func (mp *ProtocolUtil) GenerateHmac(msg *MessageData, key string) error {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
@@ -118,7 +119,7 @@ func (mp *MessageUtil) GenerateHmac(msg *MessageData, key string) error {
 }
 
 // It gets A message data and HMAC and verifies the HMAC
-func (mp *MessageUtil) VerifyHmac(msg MessageData, key string) (bool, error) {
+func (mp *ProtocolUtil) VerifyHmac(msg MessageData, key string) (bool, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
@@ -134,7 +135,7 @@ func (mp *MessageUtil) VerifyHmac(msg MessageData, key string) (bool, error) {
 }
 
 // It gets A message and returna ticket struct  Ticket
-func (mp *MessageUtil) DecryptTicket(ticket string, key string) (Ticket, error) {
+func (mp *ProtocolUtil) DecryptTicket(ticket string, key string) (Ticket, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
@@ -156,7 +157,7 @@ func (mp *MessageUtil) DecryptTicket(ticket string, key string) (Ticket, error) 
 	return convertedTicket, nil
 }
 
-func (mp *MessageUtil) EncryptTicket(ticket Ticket, key string) (string, error) {
+func (mp *ProtocolUtil) EncryptTicket(ticket Ticket, key string) (string, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
@@ -174,7 +175,7 @@ func (mp *MessageUtil) EncryptTicket(ticket Ticket, key string) (string, error) 
 }
 
 // It gets A ticket and encrypts the ticket. it retruns both byte  array and base64 encoded version of the byte array
-func (mp *MessageUtil) ConvertTicketToByte(ticket Ticket) ([]byte, error) {
+func (mp *ProtocolUtil) ConvertTicketToByte(ticket Ticket) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
@@ -186,7 +187,7 @@ func (mp *MessageUtil) ConvertTicketToByte(ticket Ticket) ([]byte, error) {
 }
 
 // It gets A ticket and dencrypts the ticket. it retruns both byte  array and base64 encoded version of the byte array
-func (mp *MessageUtil) ConvertByteToTicket(data []byte) (Ticket, error) {
+func (mp *ProtocolUtil) ConvertByteToTicket(data []byte) (Ticket, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 
@@ -198,7 +199,7 @@ func (mp *MessageUtil) ConvertByteToTicket(data []byte) (Ticket, error) {
 	return ticket, nil
 }
 
-func (mp *MessageUtil) ConvertMessageDataToByte(msg MessageData) ([]byte, error) {
+func (mp *ProtocolUtil) ConvertMessageDataToByte(msg MessageData) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
@@ -209,7 +210,7 @@ func (mp *MessageUtil) ConvertMessageDataToByte(msg MessageData) ([]byte, error)
 	return buf.Bytes(), err
 }
 
-func (mp *MessageUtil) ConvertByteToMessageData(data []byte) (MessageData, error) {
+func (mp *ProtocolUtil) ConvertByteToMessageData(data []byte) (MessageData, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 
@@ -221,7 +222,7 @@ func (mp *MessageUtil) ConvertByteToMessageData(data []byte) (MessageData, error
 	return msg, nil
 }
 
-func (mp *MessageUtil) ConvertMessageInfoToByte(data MessageInfo) ([]byte, error) {
+func (mp *ProtocolUtil) ConvertMessageInfoToByte(data MessageInfo) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
@@ -232,7 +233,7 @@ func (mp *MessageUtil) ConvertMessageInfoToByte(data MessageInfo) ([]byte, error
 	return buf.Bytes(), err
 }
 
-func (mp *MessageUtil) ConvertByteToMessageInfo(data []byte) (MessageInfo, error) {
+func (mp *ProtocolUtil) ConvertByteToMessageInfo(data []byte) (MessageInfo, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 
@@ -244,7 +245,7 @@ func (mp *MessageUtil) ConvertByteToMessageInfo(data []byte) (MessageInfo, error
 	return msg, nil
 }
 
-func (mp *MessageUtil) ConvertMessageToByte(data Message) ([]byte, error) {
+func (mp *ProtocolUtil) ConvertMessageToByte(data Message) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
@@ -255,7 +256,7 @@ func (mp *MessageUtil) ConvertMessageToByte(data Message) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (mp *MessageUtil) ConvertByteToMessage(data []byte) (Message, error) {
+func (mp *ProtocolUtil) ConvertByteToMessage(data []byte) (Message, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 

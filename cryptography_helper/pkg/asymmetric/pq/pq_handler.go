@@ -48,7 +48,7 @@ func (p *Pq_handler) KEMKeyGen(schemeName string) (string, string, error) {
 
 func (p *Pq_handler) KemGenerateSecretKey(secKey string, pubKey string, ciphertext string, schemeName string) ([]byte, []byte, error) {
 
-	if secKey == "" && ciphertext == "" {
+	if ciphertext == "" {
 		//we go for encapsulation
 		publicKey := p.Mlkem.ConvertBase64StringToPubKey(pubKey, schemeName)
 		cipherText, sharedKey, err := p.Mlkem.EncapsulateDeterministically(publicKey, schemeName)

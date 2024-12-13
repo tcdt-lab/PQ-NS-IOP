@@ -23,7 +23,7 @@ func TestAddVerifier(t *testing.T) {
 	verifier.SymmetricKey = "test"
 	_, err = AddVerifier(db, verifier)
 	if err != nil {
-		t.Errorf("Error adding verifier: %v", err)
+		t.Errorf("Error adding verifier_verifier: %v", err)
 	}
 }
 
@@ -43,7 +43,7 @@ func TestGetVerifiers(t *testing.T) {
 		t.Errorf("Error getting verifiers: %v", err)
 	}
 	if len(verifiers) == 0 {
-		t.Errorf("Expected at least one verifier, got 0")
+		t.Errorf("Expected at least one verifier_verifier, got 0")
 	}
 	t.Log(verifiers)
 }
@@ -67,7 +67,7 @@ func TestUpdateVerifier(t *testing.T) {
 	verifier.SymmetricKey = "test_symkey"
 	_, err = UpdateVerifier(db, verifier)
 	if err != nil {
-		t.Errorf("Error updating verifier: %v", err)
+		t.Errorf("Error updating verifier_verifier: %v", err)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestRemoveVerifier(t *testing.T) {
 	defer db.Close()
 	_, err = RemoveVerifier(db, 1)
 	if err != nil {
-		t.Errorf("Error removing verifier: %v", err)
+		t.Errorf("Error removing verifier_verifier: %v", err)
 	}
 }
 
@@ -101,7 +101,7 @@ func TestGetVerifier(t *testing.T) {
 	defer db.Close()
 	verifier, err := GetVerifier(db, 1)
 	if err != nil {
-		t.Errorf("Error getting verifier: %v", err)
+		t.Errorf("Error getting verifier_verifier: %v", err)
 	}
 	t.Log(verifier)
 }
@@ -119,7 +119,7 @@ func TestGetVerifierByIP(t *testing.T) {
 	defer db.Close()
 	verifier, err := GetVerifierByIP(db, "test")
 	if err != nil {
-		t.Errorf("Error getting verifier by IP and Port: %v", err)
+		t.Errorf("Error getting verifier_verifier by IP and Port: %v", err)
 	}
 	t.Log(verifier)
 }
@@ -137,7 +137,7 @@ func TestGetVerifierByPublicKey(t *testing.T) {
 	defer db.Close()
 	verifier, err := GetVerifierByPublicKey(db, "test")
 	if err != nil {
-		t.Errorf("Error getting verifier by public key: %v", err)
+		t.Errorf("Error getting verifier_verifier by public key: %v", err)
 	}
 	t.Log(verifier)
 }

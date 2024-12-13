@@ -47,8 +47,8 @@ func ticketGenerator() Ticket {
 	return ticket
 }
 
-func messageUtilGenerator() MessageUtil {
-	var util MessageUtil
+func messageUtilGenerator() ProtocolUtil {
+	var util ProtocolUtil
 	util.AesHandler = symmetric.AesGcm{}
 	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler("PQ")
 	util.HmacHandler = symmetric.HMAC{}
@@ -59,7 +59,7 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 	// Arrange
 	util := messageUtilGenerator()
 	secKeyStr, pubKeyStr, err := util.AsymmetricHandler.DSKeyGen("ML-DSA-65")
-	assert.NoError(t, err, "Error in DSKeyGen")
+	assert.NoError(t, err, "ErrorParams in DSKeyGen")
 	msg := messageDataGenerator()
 	key := generateSymmetricKeyStr()
 	ticket := ticketGenerator()
@@ -68,17 +68,17 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 	var encryptedMsgStr string
 	t.Run("Test Encrypt Message", func(t *testing.T) {
 		err := util.SignMessageInfo(&msg, secKeyStr, "ML-DSA-65")
-		assert.NoError(t, err, "Error in SignMessageInfo")
+		assert.NoError(t, err, "ErrorParams in SignMessageInfo")
 		err = util.GenerateHmac(&msg, key)
-		assert.NoError(t, err, "Error in GenerateHmac")
+		assert.NoError(t, err, "ErrorParams in GenerateHmac")
 		t.Log("Message Signed and HMAC generated")
 		t.Log(msg)
 		encryptedMsgStr, err = util.EncryptMessageData(msg, key)
-		assert.NoError(t, err, "Error in EncryptMessageData")
+		assert.NoError(t, err, "ErrorParams in EncryptMessageData")
 		t.Log("Message Encrypted")
 		finalMsg.Data = encryptedMsgStr
 		encTicket, err := util.EncryptTicket(ticket, key)
-		assert.NoError(t, err, "Error in EncryptTicket")
+		assert.NoError(t, err, "ErrorParams in EncryptTicket")
 		t.Log("Ticket Encrypted")
 		finalMsg.MsgTicket = encTicket
 		t.Log(finalMsg)
@@ -86,20 +86,20 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 	})
 	t.Run("Test Decrypt Message", func(t *testing.T) {
 		decryptedMsg, err := util.DecryptMessageData(finalMsg.Data, key)
-		assert.NoError(t, err, "Error in DecryptMessageData")
+		assert.NoError(t, err, "ErrorParams in DecryptMessageData")
 		t.Log("Message Decrypted")
 		t.Log(decryptedMsg)
 		decryptedTicket, err := util.DecryptTicket(finalMsg.MsgTicket, key)
-		assert.NoError(t, err, "Error in DecryptTicket")
+		assert.NoError(t, err, "ErrorParams in DecryptTicket")
 		t.Log("Ticket Decrypted")
 		t.Log(decryptedTicket)
 
 		result, err := util.VerifyMessageDataSignature(decryptedMsg, pubKeyStr, "ML-DSA-65")
-		assert.NoError(t, err, "Error in VerifyMessageDataSignature")
+		assert.NoError(t, err, "ErrorParams in VerifyMessageDataSignature")
 		assert.True(t, result, "Signature verification failed")
 		t.Log("Signature Verified")
 		result, err = util.VerifyHmac(decryptedMsg, key)
-		assert.NoError(t, err, "Error in VerifyHmac")
+		assert.NoError(t, err, "ErrorParams in VerifyHmac")
 		assert.True(t, result, "HMAC verification failed")
 		t.Log("HMAC Verified")
 		t.Log(decryptedMsg.MsgInfo.Params)

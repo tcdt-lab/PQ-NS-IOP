@@ -1,6 +1,6 @@
 package gateway_verifier
 
-// Gateway send its' information to verifier
+// Gateway send its' information to verifier_verifier
 type GatewayVerifierKeyDistributionRequest struct {
 	RequestId                 int64  `json:"requestId"`
 	GatewayCompanyName        string `json:"gatewayCompanyName"`
@@ -15,5 +15,6 @@ type GatewayVerifierKeyDistributionRequest struct {
 type GatewayVerifierKeyDistributionResponse struct {
 	OperationError string `json:"operationError"`
 	CipherText     string `json:"cipherText"`
+	PublicKeyKem   string `json:"publicKeyKem"`
 	RequestId      int64  `json:"requestId"`
 }

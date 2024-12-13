@@ -19,8 +19,8 @@ const (
 	ECC_KEM_SCHEME = "x25519"
 )
 
-func MessageUtilGenerator() pkg.MessageUtil {
-	var util pkg.MessageUtil
+func MessageUtilGenerator() pkg.ProtocolUtil {
+	var util pkg.ProtocolUtil
 	util.AesHandler = symmetric.AesGcm{}
 	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler("ECC")
 	util.HmacHandler = symmetric.HMAC{}
@@ -68,33 +68,33 @@ func TestGatewayVerifierKeyDistributionHandler(t *testing.T) {
 	var msgDataFake pkg.MessageData
 	t.Run("TestGatewayVerifierKeyDistributionHandler_check_functionality", func(t *testing.T) {
 		c, err := config.ReadYaml()
-		assert.NoError(t, err, "Error while reading config file")
+		assert.NoError(t, err, "ErrorParams while reading config file")
 		msgDataFake, kemSecKey = FakeUnEncryptedMessageDataGenerator()
 		responseBytes, err = GatewayVerifierKeyDistributionHandler(msgDataFake, *c)
-		assert.NoError(t, err, "Error while generating response")
+		assert.NoError(t, err, "ErrorParams while generating response")
 		assert.NotNil(t, responseBytes, "Response is nil")
 
 	})
 	t.Run("TestGatewayVerifierKeyDistributionHandler_check_response", func(t *testing.T) {
 		msgUtil := MessageUtilGenerator()
 		msg, err := msgUtil.ConvertByteToMessage(responseBytes)
-		assert.NoError(t, err, "Error while converting byte to message")
+		assert.NoError(t, err, "ErrorParams while converting byte to message")
 		assert.NotNil(t, msg, "Message is nil")
 		assert.False(t, msg.IsEncrypted, "Message is encrypted ")
 		msgDataStr := msg.Data
 		msgDataByte, err := b64.StdEncoding.DecodeString(msgDataStr)
-		assert.NoError(t, err, "Error while decoding message data")
+		assert.NoError(t, err, "ErrorParams while decoding message data")
 		msgData, err := msgUtil.ConvertByteToMessageData(msgDataByte)
-		assert.NoError(t, err, "Error while converting byte to message data")
+		assert.NoError(t, err, "ErrorParams while converting byte to message data")
 		t.Log(msgData.MsgInfo)
 		if msgData.MsgInfo.OperationTypeId == pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID {
 			responseParam := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionResponse)
-			_, secKey, err := msgUtil.AsymmetricHandler.KemGenerateSecretKey(kemSecKey, "", responseParam.CipherText, "ML-KEM-768")
-			assert.NoError(t, err, "Error while generating shared symmetric key")
+			_, secKey, err := msgUtil.AsymmetricHandler.KemGenerateSecretKey(kemSecKey, responseParam.PublicKeyKem, responseParam.CipherText, "ML-KEM-768")
+			assert.NoError(t, err, "ErrorParams while generating shared symmetric key")
 			assert.NotNil(t, secKey, "Shared symmetric key is nil")
 			secKeyStr64 := msgUtil.AesHandler.ConvertKeyBytesToStr64(secKey)
 			resHamc, err := msgUtil.VerifyHmac(msgData, secKeyStr64)
-			assert.NoError(t, err, "Error while verifying hmac")
+			assert.NoError(t, err, "ErrorParams while verifying hmac")
 			assert.True(t, resHamc, "Hmac verification failed")
 
 			t.Log(responseParam)

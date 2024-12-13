@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
+	"os"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/data"
@@ -14,14 +15,16 @@ import (
 	"verifier/config"
 )
 
+// As this step is for key setup, it is the only place we have to verify the signiture
+// In other requests, we can verify the signiture in the parser
 func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Config) ([]byte, error) {
 	var gvKeyDistributionReq gateway_verifier.GatewayVerifierKeyDistributionRequest
 	gvKeyDistributionReq = msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
 	var gateway data.Gateway
-	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
+	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	db, err := util.GetDBConnection(c)
 	if err != nil {
-		zap.L().Error("Error while getting db connection", zap.Error(err))
+		zap.L().Error("ErrorParams while getting db connection", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
 	gateway.Ip = gvKeyDistributionReq.GatewayIP
@@ -31,40 +34,42 @@ func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Con
 	gateway.PublicKeyKem = gvKeyDistributionReq.GatewayPublicKeyKem
 	gateway.KemScheme = gvKeyDistributionReq.GatewayKemScheme
 
-	res, err2 := checkSignature(msgData, msgUtil, gateway)
-	if err2 != nil {
-		db, err := util.GetDBConnection(c)
-		if err != nil {
-			zap.L().Error("Error while getting db connection", zap.Error(err))
-			return generateErrorResponse(db, c, err, gateway.SigScheme)
-		}
+	signatureCheck, err := checkSignature(msgData, msgUtil, gateway)
+	if err != nil {
+		zap.L().Error("ErrorParams while checking signature", zap.Error(err))
+		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
-	if !res {
+	if !signatureCheck {
 		err = errors.New("Signature verification failed")
-		zap.L().Error("Signature verification failed", zap.Error(err))
+		zap.L().Error("ErrorParams while checking signature", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
 
-	cipherText, sharedSymmetricKey, err := msgUtil.AsymmetricHandler.KemGenerateSecretKey("", gateway.PublicKeyKem, "", gateway.KemScheme)
+	currentUserInfo, err := getUserInformation(db, c)
+	if err != nil {
+		zap.L().Error("ErrorParams while getting user secret key", zap.Error(err))
+		return generateErrorResponse(db, c, err, gateway.SigScheme)
+	}
+	cipherText, sharedSymmetricKey, err := msgUtil.AsymmetricHandler.KemGenerateSecretKey(currentUserInfo.SecretKeyKem, gateway.PublicKeyKem, "", gateway.KemScheme)
 	if err != nil {
 
-		zap.L().Error("Error while generating shared symmetric key", zap.Error(err))
+		zap.L().Error("ErrorParams while generating shared symmetric key", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
 	gateway.SymmetricKey = msgUtil.AesHandler.ConvertKeyBytesToStr64(sharedSymmetricKey)
 	_, err = data.AddGateway(db, gateway)
 	if err != nil {
 		fmt.Println(err)
-		zap.L().Error("Error while adding gateway", zap.Error(err))
+		zap.L().Error("ErrorParams while adding gateway", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
-	return generateResponse(gateway.SymmetricKey, cipherText, msgData.MsgInfo.Nonce, c)
+	return generateResponse(gateway.SymmetricKey, currentUserInfo.PublicKeyKem, cipherText, msgData.MsgInfo.Nonce, c)
 
 }
 
-func checkSignature(msgData pkg.MessageData, msgUtil pkg.MessageUtil, gateway data.Gateway) (bool, error) {
+func checkSignature(msgData pkg.MessageData, protocolUtil pkg.ProtocolUtil, gateway data.Gateway) (bool, error) {
 	if msgData.Signature != "" {
-		res, err := msgUtil.VerifyMessageDataSignature(msgData, gateway.PublicKeySig, gateway.SigScheme)
+		res, err := protocolUtil.VerifyMessageDataSignature(msgData, gateway.PublicKeySig, gateway.SigScheme)
 		if err != nil {
 			return false, err
 		}
@@ -88,15 +93,15 @@ func generateErrorResponse(db *sql.DB, c config.Config, err error, schemeName st
 	messageInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_OPERATION_ERROR_ID
 	messageInfo.Params = gvKeyDistributionReq
 	messgaeData.MsgInfo = messageInfo
-	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
-	privateKeyStr, err := getUserPrivateKey(db, c)
+	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
+	verifeirCurrentUser, err := getUserInformation(db, c)
 	if err != nil {
 		return nil, err
 	}
-	msgUtil.SignMessageInfo(&messgaeData, privateKeyStr, schemeName)
+	msgUtil.SignMessageInfo(&messgaeData, verifeirCurrentUser.SecretKeySig, schemeName)
 	msgDataBytes, err := msgUtil.ConvertMessageDataToByte(messgaeData)
 	if err != nil {
-		zap.L().Error("Error while converting message data to byte", zap.Error(err))
+		zap.L().Error("ErrorParams while converting message data to byte", zap.Error(err))
 		return nil, err
 	}
 	msgDataStr := base64.StdEncoding.EncodeToString(msgDataBytes)
@@ -104,48 +109,49 @@ func generateErrorResponse(db *sql.DB, c config.Config, err error, schemeName st
 	message.IsEncrypted = false
 	msgByte, err := msgUtil.ConvertMessageToByte(message)
 	if err != nil {
-		zap.L().Error("Error while converting message to byte", zap.Error(err))
+		zap.L().Error("ErrorParams while converting message to byte", zap.Error(err))
 		return nil, err
 	}
 	return msgByte, nil
 
 }
 
-func getUserPrivateKey(db *sql.DB, c config.Config) (string, error) {
-	verifeirUser, err := data.GetVerifierUserByPassword(db, c.User.Password)
+func getUserInformation(db *sql.DB, c config.Config) (data.VerifierUser, error) {
+	verifeirUser, err := data.GetVerifierUserByPassword(db, os.Getenv("PQ_NS_IOP_VU_PASS"))
 	if err != nil {
-		zap.L().Error("Error while getting verifier user", zap.Error(err))
-		return "", err
+		zap.L().Error("ErrorParams while getting verifier_verifier user", zap.Error(err))
+		return data.VerifierUser{}, err
 	}
-	return verifeirUser.SecretKey, nil
+	return verifeirUser, nil
 
 }
 
-func generateResponse(symmetricKey string, cipherText []byte, nonce int, c config.Config) ([]byte, error) {
-	var gvKeyDistributionReq gateway_verifier.GatewayVerifierKeyDistributionResponse
-	msgUtil := util.MessageUtilGenerator(c.Security.CryptographyScheme)
+func generateResponse(symmetricKey string, verifierUSerPubKeyKem string, cipherText []byte, nonce int, c config.Config) ([]byte, error) {
+	var gvKeyDistributionRes gateway_verifier.GatewayVerifierKeyDistributionResponse
+	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var messageInfo pkg.MessageInfo
 	var messgaeData pkg.MessageData
 	var message pkg.Message
-	gvKeyDistributionReq.CipherText = base64.StdEncoding.EncodeToString(cipherText)
-	gvKeyDistributionReq.OperationError = ""
+	gvKeyDistributionRes.CipherText = base64.StdEncoding.EncodeToString(cipherText)
+	gvKeyDistributionRes.OperationError = ""
+	gvKeyDistributionRes.PublicKeyKem = verifierUSerPubKeyKem
 	messageInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID
-	messageInfo.Params = gvKeyDistributionReq
+	messageInfo.Params = gvKeyDistributionRes
 	messageInfo.Nonce = nonce
 	messgaeData.MsgInfo = messageInfo
-	msgUtil.GenerateHmac(&messgaeData, symmetricKey)
-	msgDataBytes, err := msgUtil.ConvertMessageDataToByte(messgaeData)
+	protocolUtil.GenerateHmac(&messgaeData, symmetricKey)
+	msgDataBytes, err := protocolUtil.ConvertMessageDataToByte(messgaeData)
 	if err != nil {
-		zap.L().Error("Error while converting message data to byte", zap.Error(err))
+		zap.L().Error("ErrorParams while converting message data to byte", zap.Error(err))
 		return nil, err
 	}
 	msgDataStr := base64.StdEncoding.EncodeToString(msgDataBytes)
 
 	message.Data = msgDataStr
 	message.IsEncrypted = false
-	msgByte, err := msgUtil.ConvertMessageToByte(message)
+	msgByte, err := protocolUtil.ConvertMessageToByte(message)
 	if err != nil {
-		zap.L().Error("Error while converting message to byte", zap.Error(err))
+		zap.L().Error("ErrorParams while converting message to byte", zap.Error(err))
 		return nil, err
 	}
 	return msgByte, nil

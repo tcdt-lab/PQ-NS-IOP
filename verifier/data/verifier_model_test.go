@@ -36,14 +36,14 @@ func Test_VerfiersCrud(t *testing.T) {
 	assert.NoError(t, err, "Error opening database")
 	t.Run("AddVerifier", func(t *testing.T) {
 		_, err := AddNewVerifier(&v1, db)
-		assert.NoError(t, err, "Error adding verifier")
+		assert.NoError(t, err, "Error adding verifier_verifier")
 		_, err = AddNewVerifier(&v2, db)
-		assert.NoError(t, err, "Error adding verifier")
+		assert.NoError(t, err, "Error adding verifier_verifier")
 	})
 	t.Run("GetVerifiers", func(t *testing.T) {
 		verifiersList, err = GetVerifiers(db)
 		assert.NoError(t, err, "Error getting verifiers")
-		assert.Greater(t, len(verifiersList), 0, "Expected at least one verifier, got 0")
+		assert.Greater(t, len(verifiersList), 0, "Expected at least one verifier_verifier, got 0")
 		t.Log(verifiersList)
 	})
 	t.Run("UpdateVerifier", func(t *testing.T) {
@@ -57,7 +57,7 @@ func Test_VerfiersCrud(t *testing.T) {
 		v1.Id = verifiersList[0].Id
 
 		_, err = UpdateVerifier(&v1, db)
-		assert.NoError(t, err, "Error updating verifier")
+		assert.NoError(t, err, "Error updating verifier_verifier")
 		verifiersList, err = GetVerifiers(db)
 		assert.NoError(t, err, "Error getting verifiers")
 		assert.Equal(t, "v_IP1_updated", verifiersList[0].Ip)
@@ -65,23 +65,23 @@ func Test_VerfiersCrud(t *testing.T) {
 	t.Run("GetVerfiersInCommittee", func(t *testing.T) {
 		verifiersList, err = GetVerifiersInCommittee(db)
 		assert.NoError(t, err, "Error getting verifiers")
-		assert.Greater(t, len(verifiersList), 0, "Expected at least one verifier, got 0")
+		assert.Greater(t, len(verifiersList), 0, "Expected at least one verifier_verifier, got 0")
 		t.Log(verifiersList)
 	})
 	t.Run("GetVerifierByPublicKeySig", func(t *testing.T) {
 		verifier, err := GetVerifierByPublicKeySig(db, v1.PublicKeySig)
-		assert.NoError(t, err, "Error getting verifier")
+		assert.NoError(t, err, "Error getting verifier_verifier")
 		assert.Equal(t, "v_IP1_updated", verifier.Ip)
 	})
 	t.Run("GetVerifierByIP", func(t *testing.T) {
 		verifier, err := GetVerifierByIp(db, v1.Ip)
-		assert.NoError(t, err, "Error getting verifier")
+		assert.NoError(t, err, "Error getting verifier_verifier")
 		assert.Equal(t, "v_IP1_updated", verifier.Ip)
 	})
 
 	t.Run("GetVerifier", func(t *testing.T) {
 		verifier, err := GetVerifier(db, verifiersList[0].Id)
-		assert.NoError(t, err, "Error getting verifier")
+		assert.NoError(t, err, "Error getting verifier_verifier")
 		assert.Equal(t, "v_IP1_updated", verifier.Ip)
 	})
 	t.Run("RemoveVerifier", func(t *testing.T) {
@@ -89,7 +89,7 @@ func Test_VerfiersCrud(t *testing.T) {
 		_, err = RemoveVerifier(db, verifiersList[0].Id)
 
 		lenBeforeRemove := len(verifiersList)
-		assert.NoError(t, err, "Error removing verifier")
+		assert.NoError(t, err, "Error removing verifier_verifier")
 		verifiersList, err = GetVerifiers(db)
 		assert.NoError(t, err, "Error getting verifiers")
 		assert.Equal(t, lenBeforeRemove-1, len(verifiersList))

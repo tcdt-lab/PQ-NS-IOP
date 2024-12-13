@@ -17,8 +17,8 @@ func GetDBConnection(c config.Config) (*sql.DB, error) {
 	return db, nil
 }
 
-func MessageUtilGenerator(cryptographySchemeName string) pkg.MessageUtil {
-	var util pkg.MessageUtil
+func ProtocolUtilGenerator(cryptographySchemeName string) pkg.ProtocolUtil {
+	var util pkg.ProtocolUtil
 	util.AesHandler = symmetric.AesGcm{}
 	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler(cryptographySchemeName)
 	util.HmacHandler = symmetric.HMAC{}

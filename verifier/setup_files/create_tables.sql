@@ -27,6 +27,8 @@ CREATE TABLE verifier_user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     salt VARCHAR(30) NOT NULL,
     password VARCHAR(64) NOT NULL,
-    secret_key TEXT NOT NULL,
-    public_key TEXT NOT NULL
+    secret_key_sig TEXT NOT NULL,
+    public_key_sig TEXT NOT NULL,
+    secret_key_kem TEXT NOT NULL,
+    public_key_kem TEXT NOT NULL
 );

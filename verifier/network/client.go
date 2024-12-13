@@ -50,7 +50,7 @@ func SendToGateway(gateway data.Gateway, encryptedMsg []byte) error {
 
 func SendToVerifier(verifier data.Verifier, encryptedMsg []byte) error {
 
-	//socket client to send the encryptedMsg to the verifier
+	//socket client to send the encryptedMsg to the verifier_verifier
 	conn, err := net.Dial("tcp", verifier.Ip+":"+verifier.Port)
 	if err != nil {
 		return nil
@@ -63,7 +63,7 @@ func SendToVerifier(verifier data.Verifier, encryptedMsg []byte) error {
 
 func SendAndAwaitReplyToVerifier(verifier data.Verifier, encryptedMsg []byte) ([]byte, error) {
 
-	//socket client to send the encryptedMsg to the verifier
+	//socket client to send the encryptedMsg to the verifier_verifier
 	conn, err := net.Dial("tcp", verifier.Ip+":"+verifier.Port)
 	if err != nil {
 		return nil, err

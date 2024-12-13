@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	GENERAL_ERROR                                          = -1
 	GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID = 1
 
 	GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID = 2
@@ -35,4 +36,9 @@ type Ticket struct {
 	Deadline      time.Time "json:deadline"
 	SourceIp      string    "json:sourceIp"
 	DestinationIp string    "json:destinationIp"
+}
+
+type ErrorParams struct {
+	ErrorCode    int    "json:errorCode"
+	ErrorMessage string "json:errorMessage"
 }
