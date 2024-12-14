@@ -79,3 +79,12 @@ func GetVerifierByPublicKey(db *sql.DB, publicKey string) (Verifier, error) {
 	}
 	return verifier, nil
 }
+
+func GetVerifierByIpandPort(db *sql.DB, ip string, port string) (Verifier, error) {
+	var verifier Verifier
+	rows := db.QueryRow("SELECT * FROM verifiers WHERE Ip = ? AND Port = ?", ip, port)
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKey, &verifier.SymmetricKey); err != nil {
+		return Verifier{}, err
+	}
+	return verifier, nil
+}

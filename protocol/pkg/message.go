@@ -28,7 +28,7 @@ type MessageInfo struct {
 	Params          interface{} "json:params"
 	SourceId        string      "json:sourceId"
 	DestinationId   string      "json:destinationId"
-	Nonce           int         "json:nonce"
+	Nonce           string      "json:nonce"
 }
 
 type Ticket struct {

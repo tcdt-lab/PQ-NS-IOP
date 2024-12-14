@@ -9,6 +9,8 @@ import (
 type Config struct {
 	DB       DB       `yaml:"DB"`
 	Security Security `yaml:"Security"`
+	Server   Server   `yaml:"Server"`
+	User     User     `yaml:"User"`
 	// Ensure this matches the YAML key
 }
 
@@ -30,6 +32,7 @@ type Server struct {
 	Protocol   string `yaml:"protocol"`
 	Port       string `yaml:"port"`
 	BufferSize int    `yaml:"buffer_size"`
+	Ip         string `yaml:"ip"`
 }
 
 type User struct {

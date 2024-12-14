@@ -134,3 +134,21 @@ func TestGetGatewayByID(t *testing.T) {
 	}
 	fmt.Println(gateway)
 }
+
+func TestGetGatewayByIpandPort(t *testing.T) {
+	c, err := config.ReadYaml()
+	if err != nil {
+		t.Errorf("Error reading config.yaml file: %v", err)
+	}
+	db := getDBConnection(*c)
+
+	if err != nil {
+		t.Errorf("Error opening database: %v", err)
+	}
+	defer db.Close()
+	gateway, err := GetGatewayByIpAndPort(db, "test", "8080")
+	if err != nil {
+		t.Errorf("Error getting gateway by IP and Port: %v", err)
+	}
+	fmt.Println(gateway)
+}

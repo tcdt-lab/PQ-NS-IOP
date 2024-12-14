@@ -33,7 +33,7 @@ func generateTicketSymmetricKeyStr() string {
 
 func messageInfoGenerator() MessageInfo {
 
-	msgData := MessageInfo{OperationTypeId: 1, Params: "params", SourceId: "sourceId", DestinationId: "DestinationId", Nonce: 4441}
+	msgData := MessageInfo{OperationTypeId: 1, Params: "params", SourceId: "sourceId", DestinationId: "DestinationId", Nonce: "4441"}
 	return msgData
 }
 
@@ -103,6 +103,14 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 		assert.True(t, result, "HMAC verification failed")
 		t.Log("HMAC Verified")
 		t.Log(decryptedMsg.MsgInfo.Params)
+	})
+
+	t.Run("Convert MsgData To string and back", func(t *testing.T) {
+		msgDataStr, err := util.ConvertMessageDataToByte(msg)
+		assert.NoError(t, err, "ErrorParams in ConvertMessageDataToByte")
+		msgData, err := util.ConvertByteToMessageData(msgDataStr)
+		assert.NoError(t, err, "ErrorParams in ConvertByteToMessageData")
+		assert.Equal(t, msg, msgData, "MessageData not equal")
 	})
 
 }

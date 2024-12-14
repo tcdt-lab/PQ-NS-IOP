@@ -210,6 +210,22 @@ func (mp *ProtocolUtil) ConvertMessageDataToByte(msg MessageData) ([]byte, error
 	return buf.Bytes(), err
 }
 
+func (mp *ProtocolUtil) ConvertMessageDataToB64String(msg MessageData) (string, error) {
+	msgBytes, err := mp.ConvertMessageDataToByte(msg)
+	if err != nil {
+		return "", err
+	}
+	return b64.StdEncoding.EncodeToString(msgBytes), nil
+}
+
+func (mp *ProtocolUtil) ConvertB64ToMessageData(msg string) (MessageData, error) {
+	msgBytes, err := b64.StdEncoding.DecodeString(msg)
+	if err != nil {
+		return MessageData{}, err
+	}
+	return mp.ConvertByteToMessageData(msgBytes)
+}
+
 func (mp *ProtocolUtil) ConvertByteToMessageData(data []byte) (MessageData, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)

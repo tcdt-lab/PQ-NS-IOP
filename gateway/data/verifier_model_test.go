@@ -17,8 +17,8 @@ func TestAddVerifier(t *testing.T) {
 	}
 	defer db.Close()
 	var verifier Verifier
-	verifier.Ip = "test"
-	verifier.Port = "test"
+	verifier.Ip = "127.0.0.1"
+	verifier.Port = "8080"
 	verifier.PublicKey = "test"
 	verifier.SymmetricKey = "test"
 	_, err = AddVerifier(db, verifier)
@@ -138,6 +138,24 @@ func TestGetVerifierByPublicKey(t *testing.T) {
 	verifier, err := GetVerifierByPublicKey(db, "test")
 	if err != nil {
 		t.Errorf("Error getting verifier_verifier by public key: %v", err)
+	}
+	t.Log(verifier)
+}
+
+func TestGetVerifierByIPAndPort(t *testing.T) {
+	c, err := config.ReadYaml()
+	if err != nil {
+		t.Errorf("Error reading config.yaml file: %v", err)
+	}
+	db := getDBConnection(*c)
+
+	if err != nil {
+		t.Errorf("Error opening database: %v", err)
+	}
+	defer db.Close()
+	verifier, err := GetVerifierByIpandPort(db, "127.0.0.1", "8080")
+	if err != nil {
+		t.Errorf("Error getting verifier_verifier by IP and Port: %v", err)
 	}
 	t.Log(verifier)
 }
