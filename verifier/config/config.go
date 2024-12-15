@@ -11,6 +11,7 @@ type Config struct {
 	Security Security `yaml:"Security"`
 	Server   Server   `yaml:"Server"`
 	User     User     `yaml:"User"`
+	Trust    Trust    `yaml:"Trust"`
 	// Ensure this matches the YAML key
 }
 
@@ -36,6 +37,12 @@ type Server struct {
 
 type User struct {
 	Password string `yaml:"password"`
+}
+
+type Trust struct {
+	ScoreScheme            string  `yaml:"score_scheme"`
+	BaselineDiscountFactor float64 `yaml:"baseline_discount_factor"`
+	PopoviciuEpsilon       float64 `yaml:"popoviciu_epsilon"`
 }
 
 func ReadYaml() (*Config, error) {
