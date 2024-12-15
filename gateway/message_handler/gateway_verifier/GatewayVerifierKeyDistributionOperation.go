@@ -2,6 +2,7 @@ package gateway_verifier
 
 import (
 	b64 "encoding/base64"
+	"fmt"
 	"gateway/config"
 	"gateway/data"
 	"go.uber.org/zap"
@@ -20,6 +21,7 @@ func CreateGatewayVerifierKeyDistributionMessage(c *config.Config) []byte {
 	var nonce string
 	currentUSer, err := getCurrentGatewayUser(c)
 	if err != nil {
+		fmt.Println(err)
 		zap.L().Error("Error while getting current gateway user", zap.Error(err))
 		return nil
 	}
@@ -67,6 +69,6 @@ func getCurrentGatewayUser(c *config.Config) (data.GatewayUser, error) {
 		return data.GatewayUser{}, err
 	}
 	defer db.Close()
-	return data.GetGatewayUserByPassword(db, os.Getenv("PQ_NS_IOP_GU_PASS"))
+	return data.GetGatewayUserByPassword(db, b64.StdEncoding.EncodeToString([]byte(os.Getenv("PQ_NS_IOP_GU_PASS"))))
 
 }

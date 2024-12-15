@@ -279,6 +279,7 @@ func (mp *ProtocolUtil) ConvertByteToMessage(data []byte) (Message, error) {
 	var msg Message
 	err := dec.Decode(&msg)
 	if err != nil {
+
 		return Message{}, err
 	}
 	return msg, nil
