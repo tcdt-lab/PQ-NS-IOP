@@ -9,8 +9,11 @@ type PopoviciuTrustScoreCalculator struct {
 	c config.Config
 }
 
-func (b *PopoviciuTrustScoreCalculator) CalculateTrustScore(lastValidationResult float64, scoresHistory []float64) float64 {
-	discountFactor := b.calculateDiscountFactor(scoresHistory)
+func (b *PopoviciuTrustScoreCalculator) CalculateTrustScore(lastValidationResult float64, validationResultHistory []float64, scoresHistory []float64) float64 {
+	discountFactor := b.calculateDiscountFactor(validationResultHistory)
+	if len(scoresHistory) == 0 {
+		return ((1 - discountFactor) * lastValidationResult)
+	}
 	trstScore := (scoresHistory[len(scoresHistory)-1] * discountFactor) + ((1 - discountFactor) * lastValidationResult)
 	return trstScore
 }
@@ -34,7 +37,7 @@ func (b *PopoviciuTrustScoreCalculator) calculateDiscountFactor(scores []float64
 	epsilon := b.c.Trust.PopoviciuEpsilon
 	rangeValue := b.calculateTrustRange(scores)
 
-	discountFactor := (variance/(math.Pow(rangeValue, 2)/4) + epsilon)
+	discountFactor := (variance / ((math.Pow(rangeValue, 2) / 4) + epsilon))
 	return discountFactor
 }
 

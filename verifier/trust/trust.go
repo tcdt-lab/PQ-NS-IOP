@@ -5,7 +5,7 @@ import (
 	"verifier/config"
 )
 
-func CalculateTrustScore(lastValidationResult float64, trustScoreHistory []float64) float64 {
+func CalculateTrustScore(lastValidationResult float64, validationResultHistory []float64, trustScoreHistory []float64) float64 {
 	// Calculate trust score
 	c, err := config.ReadYaml()
 	if err != nil {
@@ -14,5 +14,5 @@ func CalculateTrustScore(lastValidationResult float64, trustScoreHistory []float
 	}
 	trustScoreCalculatorFactory := TrustScoreCalculatorFactory{}
 	scoreCalculator := trustScoreCalculatorFactory.CreateTrustScoreCalculator(*c)
-	return scoreCalculator.CalculateTrustScore(lastValidationResult, trustScoreHistory)
+	return scoreCalculator.CalculateTrustScore(lastValidationResult, validationResultHistory, trustScoreHistory)
 }

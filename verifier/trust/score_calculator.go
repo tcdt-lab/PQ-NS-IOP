@@ -3,7 +3,7 @@ package trust
 import "verifier/config"
 
 type ScoreCalculator interface {
-	CalculateTrustScore(lastValidationResult float64, scoresHistory []float64) float64
+	CalculateTrustScore(lastValidationResult float64, validationResultHistory []float64, scoresHistory []float64) float64
 }
 
 type TrustScoreCalculatorFactory struct {
