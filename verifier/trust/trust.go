@@ -5,12 +5,12 @@ import (
 	"verifier/config"
 )
 
-func CalculateTrustScore(lastValidationResult float64, validationResultHistory []float64, trustScoreHistory []float64) float64 {
+func CalculateTrustScore(lastValidationResult float64, validationResultHistory []float64, trustScoreHistory []float64) (float64, float64, float64) {
 	// Calculate trust score
 	c, err := config.ReadYaml()
 	if err != nil {
 		zap.L().Error("Error reading config.yaml file", zap.Error(err))
-		return 0
+		return 0, 0, 0
 	}
 	trustScoreCalculatorFactory := TrustScoreCalculatorFactory{}
 	scoreCalculator := trustScoreCalculatorFactory.CreateTrustScoreCalculator(*c)

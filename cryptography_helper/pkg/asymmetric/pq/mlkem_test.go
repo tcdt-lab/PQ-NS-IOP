@@ -35,6 +35,20 @@ func TestEncapsulateDeterministically(t *testing.T) {
 
 	var mlkem MLKEM
 	pk, _, _ := mlkem.KeyGen("ML-KEM-768")
+	t.Run("Test EncapsulateDeterministically", func(t *testing.T) {
+		for i := 0; i < 3; i++ {
+			cipherText, sharedKey, err := mlkem.EncapsulateDeterministically(pk, "ML-KEM-768")
+			if err != nil {
+				t.Errorf("Error in EncapsulateDeterministically: %v", err)
+			}
+			if cipherText == nil || sharedKey == nil {
+				t.Errorf("Failed to encapsulate")
+			}
+			fmt.Println("Successfully encapsulated")
+			fmt.Println("cipherText: ", hex.EncodeToString(cipherText))
+			fmt.Println("sharedKey: ", hex.EncodeToString(sharedKey[:32]))
+		}
+	})
 	cipherText, sharedKey, err := mlkem.EncapsulateDeterministically(pk, "ML-KEM-768")
 	if err != nil {
 		t.Errorf("Error in EncapsulateDeterministically: %v", err)

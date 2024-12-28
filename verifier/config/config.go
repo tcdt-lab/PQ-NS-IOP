@@ -42,7 +42,7 @@ type User struct {
 type Trust struct {
 	ScoreScheme            string  `yaml:"score_scheme"`
 	BaselineDiscountFactor float64 `yaml:"baseline_discount_factor"`
-	PopoviciuEpsilon       float64 `yaml:"popoviciu_epsilon"`
+	ExponentAdjustment     float64 `yaml:"exponent_adjustment"`
 }
 
 func ReadYaml() (*Config, error) {
