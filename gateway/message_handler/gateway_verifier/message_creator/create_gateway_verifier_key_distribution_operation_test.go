@@ -1,4 +1,4 @@
-package gateway_verifier
+package message_creator
 
 import (
 	"fmt"

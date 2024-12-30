@@ -21,8 +21,8 @@ type MessageParser struct {
 // Get a Message, parse it and then and generate an appropriate response
 // all signiture checking and decryption should be done in parser
 func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort string, c config.Config) ([]byte, error) {
-	var msgUtil pkg.ProtocolUtil
-	message, err := msgUtil.ConvertByteToMessage(msg)
+	protoUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
+	message, err := protoUtil.ConvertByteToMessage(msg)
 	var messageData pkg.MessageData
 	db, err := util.GetDBConnection(c)
 	if err != nil {
@@ -32,32 +32,17 @@ func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort st
 		return nil, err
 	}
 	if message.IsEncrypted {
-		symmetricKey, pubKeySig, err := mp.getSenderKeys(senderIp, c)
+
 		if err != nil {
 			return nil, err
+		}
+		symmetricKey, _, err := util.GetSenderKeys(senderIp, c)
+		if err != nil {
+			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
 		}
 		messageData, err = mp.decryptMessageData(message.Data, symmetricKey, c)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-		}
-		if messageData.Signature != "" {
-			res, err := msgUtil.VerifyMessageDataSignature(messageData, pubKeySig, c.Security.MlDSAScheme)
-			if err != nil {
-				return nil, err
-			}
-			if !res {
-				err = errors.New("Signature verification failed")
-				return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-			}
-		} else if messageData.Hmac != "" {
-			res, err := msgUtil.VerifyHmac(messageData, symmetricKey)
-			if err != nil {
-				return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-			}
-			if !res {
-				err := errors.New("Hmac verification failed")
-				return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-			}
 		}
 
 	} else { //if message is not encrypted it is in an init message, so keys are in the message body. In the handler we will check signature/hmac
@@ -65,12 +50,13 @@ func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort st
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
 		}
-		messageData, err = msgUtil.ConvertByteToMessageData(msgDataBytes)
+		messageData, err = protoUtil.ConvertByteToMessageData(msgDataBytes)
 
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
 		}
 	}
+
 	return mp.generateResponse(messageData, senderIp, senderPort, c)
 }
 
@@ -84,24 +70,6 @@ func (mp *MessageParser) decryptMessageData(msgData string, symmetricKey string,
 	return decryptedMsg, nil
 }
 
-func (mp *MessageParser) getSenderKeys(senderIp string, c config.Config) (string, string, error) {
-	db, err := util.GetDBConnection(c)
-	if err != nil {
-		return "", "", err
-	}
-	var gateway data.Gateway
-	var verifier data.Verifier
-
-	gateway, err = data.GetGatewayByIp(db, senderIp)
-	if err == nil {
-		return gateway.SymmetricKey, gateway.PublicKeySig, nil
-	}
-	verifier, err = data.GetVerifierByIp(db, senderIp)
-	if err != nil {
-		return "", "", err
-	}
-	return verifier.SymmetricKey, verifier.PublicKeySig, nil
-}
 func (mp *MessageParser) generateResponse(msgData pkg.MessageData, senderIp string, senderPort string, c config.Config) ([]byte, error) {
 	switch msgData.MsgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
@@ -124,9 +92,9 @@ func (mp *MessageParser) GenerateGeneralErrorResponse(err error, c config.Config
 	}
 	errorParams.ErrorCode = pkg.GENERAL_ERROR
 	errorParams.ErrorMessage = err.Error()
-	msgInfo.Nonce = incomingMsg.MsgInfo.Nonce
 	msgInfo.Params = errorParams
 	msgData.MsgInfo = msgInfo
+	msgInfo.OperationTypeId = pkg.GENERAL_ERROR
 	msgUtil.SignMessageInfo(&msgData, verifeirUser.SecretKeySig, c.Security.MlDSAScheme)
 	msgDataByte, err := msgUtil.ConvertMessageDataToByte(msgData)
 	if err != nil {

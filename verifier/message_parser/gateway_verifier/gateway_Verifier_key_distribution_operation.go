@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
-	"os"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/data"
@@ -45,7 +44,7 @@ func GatewayVerifierKeyDistributionHandler(msgData pkg.MessageData, c config.Con
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
 	}
 
-	currentUserInfo, err := getUserInformation(db, c)
+	currentUserInfo, err := util.GetUserInformation(db, c)
 	if err != nil {
 		zap.L().Error("ErrorParams while getting user secret key", zap.Error(err))
 		return generateErrorResponse(db, c, err, gateway.SigScheme)
@@ -94,7 +93,7 @@ func generateErrorResponse(db *sql.DB, c config.Config, err error, schemeName st
 	messageInfo.Params = gvKeyDistributionReq
 	messgaeData.MsgInfo = messageInfo
 	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
-	verifeirCurrentUser, err := getUserInformation(db, c)
+	verifeirCurrentUser, err := util.GetUserInformation(db, c)
 	if err != nil {
 		return nil, err
 	}
@@ -116,17 +115,7 @@ func generateErrorResponse(db *sql.DB, c config.Config, err error, schemeName st
 
 }
 
-func getUserInformation(db *sql.DB, c config.Config) (data.VerifierUser, error) {
-	verifeirUser, err := data.GetVerifierUserByPassword(db, os.Getenv("PQ_NS_IOP_VU_PASS"))
-	if err != nil {
-		zap.L().Error("ErrorParams while getting verifier_verifier user", zap.Error(err))
-		return data.VerifierUser{}, err
-	}
-	return verifeirUser, nil
-
-}
-
-func generateResponse(symmetricKey string, verifierUSerPubKeyKem string, cipherText []byte, nonce int, c config.Config) ([]byte, error) {
+func generateResponse(symmetricKey string, verifierUSerPubKeyKem string, cipherText []byte, nonce string, c config.Config) ([]byte, error) {
 	var gvKeyDistributionRes gateway_verifier.GatewayVerifierKeyDistributionResponse
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var messageInfo pkg.MessageInfo
@@ -139,7 +128,7 @@ func generateResponse(symmetricKey string, verifierUSerPubKeyKem string, cipherT
 	messageInfo.Params = gvKeyDistributionRes
 	messageInfo.Nonce = nonce
 	messgaeData.MsgInfo = messageInfo
-	protocolUtil.GenerateHmac(&messgaeData, symmetricKey)
+	protocolUtil.GenerateHmacMsgInfo(&messgaeData, symmetricKey)
 	msgDataBytes, err := protocolUtil.ConvertMessageDataToByte(messgaeData)
 	if err != nil {
 		zap.L().Error("ErrorParams while converting message data to byte", zap.Error(err))
