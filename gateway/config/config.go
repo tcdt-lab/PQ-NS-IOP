@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	DB       DB       `yaml:"DB"`
-	Security Security `yaml:"Security"`
-	Server   Server   `yaml:"Server"`
-	User     User     `yaml:"User"`
+	DB            DB            `yaml:"DB"`
+	Security      Security      `yaml:"Security"`
+	Server        Server        `yaml:"Server"`
+	User          User          `yaml:"User"`
+	BootstrapNode BootstrapNode `yaml:"Bootstrap_Node"`
 	// Ensure this matches the YAML key
 }
 
@@ -37,6 +38,13 @@ type Server struct {
 
 type User struct {
 	Password string `yaml:"password"`
+}
+
+type BootstrapNode struct {
+	Ip        string `yaml:"ip"`
+	Port      string `yaml:"port"`
+	PubKeySig string `yaml:"pub_key_sig"`
+	PubKeyKem string `yaml:"pub_key_kem"`
 }
 
 func ReadYaml() (*Config, error) {

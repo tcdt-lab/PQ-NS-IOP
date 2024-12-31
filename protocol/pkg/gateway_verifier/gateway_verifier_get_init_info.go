@@ -1,14 +1,15 @@
 package gateway_verifier
 
-type GatewayVerifierInitInfoOperation struct {
+type GatewayVerifierInitInfoOperationRequest struct {
 	RequestId int64 `json:"requestId"`
 }
-type GatewayVerifierInitInfoResponseOperation struct {
-	OperationError      string                             `json:"operationError"`
-	CurrentVerifierInfo GatewayVerifierInitInfoStructure   `json:"currentVerifierInfo"`
-	VerifiersList       []GatewayVerifierInitInfoStructure `json:"verifierList"`
+type GatewayVerifierInitInfoOperationResponse struct {
+	OperationError      string                                     `json:"operationError"`
+	CurrentVerifierInfo GatewayVerifierInitInfoStructureVerifier   `json:"currentVerifierInfo"`
+	VerifiersList       []GatewayVerifierInitInfoStructureVerifier `json:"verifierList"`
+	GatewaysList        []GatewayVerifierInitInfoStructureGateway  `json:"gatewayList"`
 }
-type GatewayVerifierInitInfoStructure struct {
+type GatewayVerifierInitInfoStructureVerifier struct {
 	VerifierPublicKeySignature string  `json:"verifierPublicKeySigniture"`
 	VerifierPublicKeyKem       string  `json:"verifierPublicKeyKem"`
 	VerifierIpAddress          string  `json:"verifierIpAddress"`
@@ -16,4 +17,13 @@ type GatewayVerifierInitInfoStructure struct {
 	SigScheme                  string  `json:"sigScheme"`
 	TrustScore                 float64 `json:"trustScore"`
 	IsInCommittee              bool    `json:"isInCommittee"`
+}
+
+type GatewayVerifierInitInfoStructureGateway struct {
+	GatewayPublicKeySignature string `json:"gatewayPublicKeySigniture"`
+	GatewayPublicKeyKem       string `json:"gatewayPublicKeyKem"`
+	GatewayIpAddress          string `json:"gatewayIpAddress"`
+	GatewayPort               string `json:"gatewayPort"`
+	KemScheme                 string `json:"kemScheme"`
+	SigScheme                 string `json:"sigScheme"`
 }

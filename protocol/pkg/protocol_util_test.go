@@ -69,8 +69,8 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 	t.Run("Test Encrypt Message", func(t *testing.T) {
 		err := util.SignMessageInfo(&msg, secKeyStr, "ML-DSA-65")
 		assert.NoError(t, err, "ErrorParams in SignMessageInfo")
-		err = util.GenerateHmac(&msg, key)
-		assert.NoError(t, err, "ErrorParams in GenerateHmac")
+		err = util.GenerateHmacMsgInfo(&msg, key)
+		assert.NoError(t, err, "ErrorParams in GenerateHmacMsgInfo")
 		t.Log("Message Signed and HMAC generated")
 		t.Log(msg)
 		encryptedMsgStr, err = util.EncryptMessageData(msg, key)

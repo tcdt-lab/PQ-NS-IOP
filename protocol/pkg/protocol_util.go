@@ -21,6 +21,10 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 	gob.Register(ErrorParams{})
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionRequest{})
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionResponse{})
+	gob.Register(gateway_verifier.GatewayVerifierInitInfoStructureVerifier{})
+	gob.Register(gateway_verifier.GatewayVerifierInitInfoStructureGateway{})
+	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationResponse{})
+	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationRequest{})
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message
@@ -100,7 +104,7 @@ func (mp *ProtocolUtil) EncryptMessageData(msg MessageData, symmetricKey string)
 
 // It gets A message data produces HMAC for the message
 // It returns A message with filled hmac
-func (mp *ProtocolUtil) GenerateHmac(msg *MessageData, key string) error {
+func (mp *ProtocolUtil) GenerateHmacMsgInfo(msg *MessageData, key string) error {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {

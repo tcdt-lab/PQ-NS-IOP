@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"gateway/config"
-	"gateway/logic"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"os"
@@ -30,7 +29,7 @@ func main() {
 	zap.L().Info("replaced zap's global loggers")
 	fmt.Println("Welcome to the Gateway")
 
-	logic.Login(db)
+	//logic.Login(db)
 
 }
 

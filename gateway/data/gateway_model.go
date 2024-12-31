@@ -86,3 +86,15 @@ func GetGatewayByIpAndPort(db *sql.DB, ip string, port string) (Gateway, error) 
 	}
 	return gateway, nil
 }
+
+func IfGatewayExist(db *sql.DB, gateway Gateway) (bool, error) {
+	rows, err := db.Query("SELECT * FROM gateways WHERE Ip = ? AND Port = ?", gateway.Ip, gateway.Port)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
+}

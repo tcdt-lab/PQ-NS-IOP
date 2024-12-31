@@ -3,7 +3,7 @@ package network
 import (
 	"bytes"
 	"encoding/hex"
-	"protocol/pkg"
+	"test.org/protocol/pkg"
 
 	"go.uber.org/zap"
 	"io"
@@ -55,11 +55,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	}
 	zap.L().Info("Received data: ", zap.String("data", hex.EncodeToString(buffer.Bytes())))
-	go func() {
-		err := s.messageParser.ParseMessage(buffer.Bytes(), bufferSize)
-		if err != nil {
-			zap.L().Error("Error parsing message: ", zap.Error(err))
-		}
-	}()
+	//go func() {
+	//	err := s.messageParser.ParseMessage(buffer.Bytes(), bufferSize)
+	//	if err != nil {
+	//		zap.L().Error("Error parsing message: ", zap.Error(err))
+	//	}
+	//}()
 
 }

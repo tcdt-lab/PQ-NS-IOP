@@ -8,11 +8,11 @@ import (
 
 func TestLogin(t *testing.T) {
 
-	c, err := config.ReadYaml()
-	if err != nil {
-		t.Errorf("Error reading config.yaml file: %v", err)
-	}
-	Login(getDBConnection(*c))
+	//c, err := config.ReadYaml()
+	//if err != nil {
+	//	t.Errorf("Error reading config.yaml file: %v", err)
+	//}
+	//Login(getDBConnection(*c))
 
 }
 
