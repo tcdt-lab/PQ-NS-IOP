@@ -2,6 +2,8 @@ package data
 
 import (
 	"gateway/config"
+	"test.org/cryptography/pkg/asymmetric"
+
 	"testing"
 )
 
@@ -54,17 +56,18 @@ func TestUpdateVerifier(t *testing.T) {
 		t.Errorf("Error reading config.yaml file: %v", err)
 	}
 	db := getDBConnection(*c)
-
+	asymmetricHandler := asymmetric.NewAsymmetricHandler(c.Security.CryptographyScheme)
 	if err != nil {
 		t.Errorf("Error opening database: %v", err)
 	}
 	defer db.Close()
 	var verifier Verifier
+	_, pkDSa, err := asymmetricHandler.DSKeyGen(c.Security.DSAScheme)
 	verifier.Id = 1
-	verifier.Ip = "test_ip"
-	verifier.Port = "555565"
-	verifier.PublicKey = "test_pk"
-	verifier.SymmetricKey = "test_symkey"
+	verifier.Ip = "127.0.0.1"
+	verifier.Port = "50051"
+	verifier.PublicKey = pkDSa
+	verifier.SymmetricKey = ""
 	_, err = UpdateVerifier(db, verifier)
 	if err != nil {
 		t.Errorf("Error updating verifier_verifier: %v", err)

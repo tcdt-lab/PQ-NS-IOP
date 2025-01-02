@@ -1,4 +1,4 @@
-package logic
+package data_access
 
 import (
 	"database/sql"

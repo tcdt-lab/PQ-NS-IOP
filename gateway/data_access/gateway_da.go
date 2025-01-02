@@ -1,13 +1,13 @@
-package logic
+package data_access
 
 import (
 	"gateway/data"
 )
 
-type GatewayLogic struct {
+type GatewayDA struct {
 }
 
-func (gl *GatewayLogic) GetGateways() ([]data.Gateway, error) {
+func (gl *GatewayDA) GetGateways() ([]data.Gateway, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return nil, err
@@ -15,7 +15,7 @@ func (gl *GatewayLogic) GetGateways() ([]data.Gateway, error) {
 	return data.GetGateways(db)
 }
 
-func (gl *GatewayLogic) AddGateway(gateway data.Gateway) (int64, error) {
+func (gl *GatewayDA) AddGateway(gateway data.Gateway) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -23,7 +23,7 @@ func (gl *GatewayLogic) AddGateway(gateway data.Gateway) (int64, error) {
 	return data.AddGateway(db, gateway)
 }
 
-func (gl *GatewayLogic) UpdateGateway(gateway data.Gateway) (int64, error) {
+func (gl *GatewayDA) UpdateGateway(gateway data.Gateway) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -31,7 +31,7 @@ func (gl *GatewayLogic) UpdateGateway(gateway data.Gateway) (int64, error) {
 	return data.UpdateGateway(db, gateway)
 }
 
-func (gl *GatewayLogic) RemoveGateway(id int) (int64, error) {
+func (gl *GatewayDA) RemoveGateway(id int) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -39,7 +39,7 @@ func (gl *GatewayLogic) RemoveGateway(id int) (int64, error) {
 	return data.RemoveGateway(db, id)
 }
 
-func (gl *GatewayLogic) GetGateway(id int) (data.Gateway, error) {
+func (gl *GatewayDA) GetGateway(id int) (data.Gateway, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Gateway{}, err
@@ -47,7 +47,7 @@ func (gl *GatewayLogic) GetGateway(id int) (data.Gateway, error) {
 	return data.GetGateway(db, id)
 }
 
-func (gl *GatewayLogic) GetGatewayByIpAndPort(ip string, port string) (data.Gateway, error) {
+func (gl *GatewayDA) GetGatewayByIpAndPort(ip string, port string) (data.Gateway, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Gateway{}, err
@@ -55,7 +55,7 @@ func (gl *GatewayLogic) GetGatewayByIpAndPort(ip string, port string) (data.Gate
 	return data.GetGatewayByIpAndPort(db, ip, port)
 }
 
-func (gl *GatewayLogic) GetGatewayByIP(ip string) (data.Gateway, error) {
+func (gl *GatewayDA) GetGatewayByIP(ip string) (data.Gateway, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Gateway{}, err
@@ -63,7 +63,7 @@ func (gl *GatewayLogic) GetGatewayByIP(ip string) (data.Gateway, error) {
 	return data.GetGatewayByIP(db, ip)
 }
 
-func (gl *GatewayLogic) IfGatewayExist(gateway data.Gateway) (bool, error) {
+func (gl *GatewayDA) IfGatewayExist(gateway data.Gateway) (bool, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return false, err
@@ -71,7 +71,7 @@ func (gl *GatewayLogic) IfGatewayExist(gateway data.Gateway) (bool, error) {
 	return data.IfGatewayExist(db, gateway)
 }
 
-func (gl *GatewayLogic) AddUpdateGateways(gateways []data.Gateway) error {
+func (gl *GatewayDA) AddUpdateGateways(gateways []data.Gateway) error {
 	db, err := getDbConnection()
 	if err != nil {
 		return err

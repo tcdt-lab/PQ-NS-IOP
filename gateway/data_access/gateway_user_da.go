@@ -1,11 +1,11 @@
-package logic
+package data_access
 
 import "gateway/data"
 
-type GatewayUserLogic struct {
+type GatewayUserDA struct {
 }
 
-func (gul *GatewayUserLogic) GetGatewayUsers() ([]data.GatewayUser, error) {
+func (gul *GatewayUserDA) GetGatewayUsers() ([]data.GatewayUser, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return nil, err
@@ -13,7 +13,7 @@ func (gul *GatewayUserLogic) GetGatewayUsers() ([]data.GatewayUser, error) {
 	return data.GetAllGatewayUsers(db)
 }
 
-func (gul *GatewayUserLogic) AddGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
+func (gul *GatewayUserDA) AddGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -21,7 +21,7 @@ func (gul *GatewayUserLogic) AddGatewayUser(gatewayUser data.GatewayUser) (int64
 	return data.AddNewGatewayUser(db, gatewayUser)
 }
 
-func (gul *GatewayUserLogic) UpdateGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
+func (gul *GatewayUserDA) UpdateGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -29,7 +29,7 @@ func (gul *GatewayUserLogic) UpdateGatewayUser(gatewayUser data.GatewayUser) (in
 	return data.UpdateGatewayUser(db, gatewayUser)
 }
 
-func (gul *GatewayUserLogic) RemoveGatewayUser(id int) (int64, error) {
+func (gul *GatewayUserDA) RemoveGatewayUser(id int) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -37,7 +37,7 @@ func (gul *GatewayUserLogic) RemoveGatewayUser(id int) (int64, error) {
 	return data.DeleteGatewayUser(db, id)
 }
 
-func (gul *GatewayUserLogic) GetGatewayUser(id int) (data.GatewayUser, error) {
+func (gul *GatewayUserDA) GetGatewayUser(id int) (data.GatewayUser, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.GatewayUser{}, err
@@ -45,7 +45,7 @@ func (gul *GatewayUserLogic) GetGatewayUser(id int) (data.GatewayUser, error) {
 	return data.GetGatewayUser(db, id)
 }
 
-func (gul *GatewayUserLogic) GetGatewayUserByPublicKeyDsa(pubklicKeyDSA string) (data.GatewayUser, error) {
+func (gul *GatewayUserDA) GetGatewayUserByPublicKeyDsa(pubklicKeyDSA string) (data.GatewayUser, error) {
 
 	db, err := getDbConnection()
 	if err != nil {
@@ -54,7 +54,7 @@ func (gul *GatewayUserLogic) GetGatewayUserByPublicKeyDsa(pubklicKeyDSA string) 
 	return data.GetGatewayUserByPublicKeyDsa(db, pubklicKeyDSA)
 }
 
-func (gul *GatewayUserLogic) GetGatewayUserByPublicKeyKem(pubklicKeyKEM string) (data.GatewayUser, error) {
+func (gul *GatewayUserDA) GetGatewayUserByPublicKeyKem(pubklicKeyKEM string) (data.GatewayUser, error) {
 
 	db, err := getDbConnection()
 	if err != nil {

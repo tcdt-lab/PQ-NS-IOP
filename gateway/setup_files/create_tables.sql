@@ -6,7 +6,7 @@ CREATE table gateways (
     port varchar (6) not null,
     public_key text not null,
     ticket varchar(50) ,
-    symmetric_key varchar(30)
+    symmetric_key text
 );
 
 drop table verifiers;

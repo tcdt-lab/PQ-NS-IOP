@@ -3,12 +3,10 @@ package util
 import (
 	"crypto/rand"
 	"database/sql"
-	b64 "encoding/base64"
 	"encoding/hex"
 	"gateway/config"
-	"gateway/data"
+	"gateway/data_access"
 	_ "github.com/go-sql-driver/mysql"
-	"os"
 	"test.org/cryptography/pkg/asymmetric"
 	"test.org/cryptography/pkg/symmetric"
 	"test.org/protocol/pkg"
@@ -40,21 +38,26 @@ func GenerateNonce() (string, error) {
 	return hex.EncodeToString(nonce), nil
 
 }
-func GetCurrentGatewayUser(c *config.Config) (data.GatewayUser, error) {
-	db, err := GetDBConnection(*c)
-	if err != nil {
-		return data.GatewayUser{}, err
+
+func CheckMessageSignature(msg *pkg.MessageData, sourceIp string, sourcePort string, isSourceVerifier bool, util pkg.ProtocolUtil, cfg *config.Config) (bool, error) {
+	if isSourceVerifier {
+		vDa := data_access.VerifierDA{}
+		verfifer, err := vDa.GetVerifierByIpAndPort(sourceIp, sourcePort)
+		if err != nil {
+			return false, err
+		}
+		return util.VerifyMessageDataSignature(*msg, verfifer.PublicKey, cfg.Security.DSAScheme)
+	} else {
+		gDa := data_access.GatewayDA{}
+		gateway, err := gDa.GetGatewayByIpAndPort(sourceIp, sourcePort)
+		if err != nil {
+			return false, err
+		}
+		return util.VerifyMessageDataSignature(*msg, gateway.PublicKey, cfg.Security.DSAScheme)
 	}
-	defer db.Close()
-	return data.GetGatewayUserByPassword(db, b64.StdEncoding.EncodeToString([]byte(os.Getenv("PQ_NS_IOP_GU_PASS"))))
 
 }
 
-func GetVerifierByPublicSigKey(c *config.Config, publicKey string) (data.Verifier, error) {
-	db, err := GetDBConnection(*c)
-	if err != nil {
-		return data.Verifier{}, err
-	}
-	defer db.Close()
-	return data.GetVerifierByPublicKey(db, publicKey)
+func CheckMessageHMac(msg *pkg.MessageData, symmetricKey string, util pkg.ProtocolUtil) (bool, error) {
+	return util.VerifyHmac(*msg, symmetricKey)
 }

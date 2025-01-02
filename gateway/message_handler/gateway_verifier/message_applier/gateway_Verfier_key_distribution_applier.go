@@ -2,7 +2,7 @@ package message_applier
 
 import (
 	"gateway/config"
-	"gateway/logic"
+	"gateway/data_access"
 	"gateway/message_handler/util"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg"
@@ -14,8 +14,8 @@ func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData) error 
 	if err != nil {
 		return err
 	}
-	gul := logic.GatewayUserLogic{}
-	vl := logic.VerifierLogic{}
+	gul := data_access.GatewayUserDA{}
+	vl := data_access.VerifierDA{}
 	gtUser, err := gul.GetGatewayUser(1)
 	if err != nil {
 		zap.L().Error("Error while getting gateway user", zap.Error(err))
@@ -28,7 +28,7 @@ func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData) error 
 	bootstrapVerifier, err := vl.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
 
 	bootstrapVerifier.SymmetricKey = pkgUtil.AesHandler.ConvertKeyBytesToStr64(sharedKey)
-	bootstrapVerifier.PublicKey = gvKeyDistributionRes.PublicKeyKem
+	//bootstrapVerifier.PublicKey = gvKeyDistributionRes.PublicKeyKem
 	_, err = vl.UpdateVerifier(bootstrapVerifier)
 
 	if err != nil {

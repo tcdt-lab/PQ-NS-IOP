@@ -1,4 +1,4 @@
-package logic
+package data_access
 
 //
 //import (
@@ -50,7 +50,7 @@ package logic
 //			fmt.Scanln(&rawPassword)
 //			user, err := CreateUser(rawPassword, db)
 //			if err != nil {
-//				zap.L().Error("Error while creating logic", zap.Error(err))
+//				zap.L().Error("Error while creating data_access", zap.Error(err))
 //				return false, nil
 //			}
 //			fmt.Println("GatewayUser signed in successfully")

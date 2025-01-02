@@ -1,13 +1,14 @@
 package message_parser
 
 import (
+	"errors"
 	"gateway/config"
 	"gateway/message_handler/util"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg"
 )
 
-func ParseGatewayVerifierKeyDistributionOperation(msgBytes []byte, senderIp string, sendPort string) (pkg.MessageData, error) {
+func ParseGatewayVerifierKeyDistributionResponse(msgBytes []byte, sourceIp string, sourcePort string) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	if err != nil {
@@ -26,5 +27,11 @@ func ParseGatewayVerifierKeyDistributionOperation(msgBytes []byte, senderIp stri
 		zap.L().Error("Error while converting b64 to message data", zap.Error(err))
 		return pkg.MessageData{}, err
 	}
+	if msgData.Signature != "" {
+		util.CheckMessageSignature(&msgData, sourceIp, sourcePort, true, pkgUtil, cfg)
+	} else {
+		return pkg.MessageData{}, errors.New("Signature is missing")
+	}
+
 	return msgData, nil
 }

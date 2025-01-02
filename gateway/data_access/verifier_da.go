@@ -1,11 +1,11 @@
-package logic
+package data_access
 
 import "gateway/data"
 
-type VerifierLogic struct {
+type VerifierDA struct {
 }
 
-func (vl *VerifierLogic) GetVerifiers() ([]data.Verifier, error) {
+func (vl *VerifierDA) GetVerifiers() ([]data.Verifier, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return nil, err
@@ -13,7 +13,7 @@ func (vl *VerifierLogic) GetVerifiers() ([]data.Verifier, error) {
 	return data.GetVerifiers(db)
 }
 
-func (vl *VerifierLogic) AddVerifier(verifier data.Verifier) (int64, error) {
+func (vl *VerifierDA) AddVerifier(verifier data.Verifier) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -21,7 +21,7 @@ func (vl *VerifierLogic) AddVerifier(verifier data.Verifier) (int64, error) {
 	return data.AddVerifier(db, verifier)
 }
 
-func (vl *VerifierLogic) UpdateVerifier(verifier data.Verifier) (int64, error) {
+func (vl *VerifierDA) UpdateVerifier(verifier data.Verifier) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -29,7 +29,7 @@ func (vl *VerifierLogic) UpdateVerifier(verifier data.Verifier) (int64, error) {
 	return data.UpdateVerifier(db, verifier)
 }
 
-func (vl *VerifierLogic) RemoveVerifier(id int) (int64, error) {
+func (vl *VerifierDA) RemoveVerifier(id int) (int64, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return 0, err
@@ -37,7 +37,7 @@ func (vl *VerifierLogic) RemoveVerifier(id int) (int64, error) {
 	return data.RemoveVerifier(db, id)
 }
 
-func (vl *VerifierLogic) GetVerifier(id int) (data.Verifier, error) {
+func (vl *VerifierDA) GetVerifier(id int) (data.Verifier, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Verifier{}, err
@@ -45,7 +45,7 @@ func (vl *VerifierLogic) GetVerifier(id int) (data.Verifier, error) {
 	return data.GetVerifier(db, id)
 }
 
-func (vl *VerifierLogic) GetVerifierByIpAndPort(ip string, port string) (data.Verifier, error) {
+func (vl *VerifierDA) GetVerifierByIpAndPort(ip string, port string) (data.Verifier, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Verifier{}, err
@@ -53,14 +53,14 @@ func (vl *VerifierLogic) GetVerifierByIpAndPort(ip string, port string) (data.Ve
 	return data.GetVerifierByIpandPort(db, ip, port)
 }
 
-func (vl *VerifierLogic) GetVerifierByPublicKey(publicKey string) (data.Verifier, error) {
+func (vl *VerifierDA) GetVerifierByPublicKey(publicKey string) (data.Verifier, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Verifier{}, err
 	}
 	return data.GetVerifierByPublicKey(db, publicKey)
 }
-func (vl *VerifierLogic) GetVerifierByIP(ip string) (data.Verifier, error) {
+func (vl *VerifierDA) GetVerifierByIP(ip string) (data.Verifier, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return data.Verifier{}, err
@@ -68,7 +68,7 @@ func (vl *VerifierLogic) GetVerifierByIP(ip string) (data.Verifier, error) {
 	return data.GetVerifierByIP(db, ip)
 }
 
-func (vl *VerifierLogic) IfVerifierExists(verifier data.Verifier) (bool, error) {
+func (vl *VerifierDA) IfVerifierExists(verifier data.Verifier) (bool, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return false, err
@@ -76,7 +76,7 @@ func (vl *VerifierLogic) IfVerifierExists(verifier data.Verifier) (bool, error) 
 	return data.IfVerifierExists(db, verifier)
 }
 
-func (vl *VerifierLogic) AddUpdateVerifiers(verifier []data.Verifier) error {
+func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
 	db, err := getDbConnection()
 	if err != nil {
 		return err

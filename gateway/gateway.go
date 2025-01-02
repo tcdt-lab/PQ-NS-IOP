@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gateway/config"
+	"gateway/data_access"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"os"
@@ -20,7 +21,9 @@ func main() {
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
 	db, err := getDBConnection(*c)
-
+	gDA := data_access.GatewayDA{}
+	gatw, err := gDA.GetGateways()
+	fmt.Println(gatw)
 	if err != nil {
 		zap.L().Error("Error opening database", zap.Error(err))
 		os.Exit(1)
@@ -29,7 +32,7 @@ func main() {
 	zap.L().Info("replaced zap's global loggers")
 	fmt.Println("Welcome to the Gateway")
 
-	//logic.Login(db)
+	//data_access.Login(db)
 
 }
 

@@ -4,6 +4,7 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"gateway/config"
+	"gateway/data_access"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg"
 
@@ -15,9 +16,10 @@ func CreateGatewayVerifierKeyDistributionMessage(c *config.Config) []byte {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
+	guDa := data_access.GatewayUserDA{}
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var nonce string
-	currentUSer, err := util.GetCurrentGatewayUser(c)
+	currentUSer, err := guDa.GetGatewayUser(1)
 	if err != nil {
 		fmt.Println(err)
 		zap.L().Error("Error while getting current gateway user", zap.Error(err))
