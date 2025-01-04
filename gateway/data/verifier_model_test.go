@@ -20,9 +20,9 @@ func TestAddVerifier(t *testing.T) {
 	defer db.Close()
 	var verifier Verifier
 	verifier.Ip = "127.0.0.1"
-	verifier.Port = "8080"
-	verifier.PublicKey = "test"
-	verifier.SymmetricKey = "test"
+	verifier.Port = "50051"
+	verifier.PublicKey = ""
+	verifier.SymmetricKey = ""
 	_, err = AddVerifier(db, verifier)
 	if err != nil {
 		t.Errorf("Error adding verifier_verifier: %v", err)
