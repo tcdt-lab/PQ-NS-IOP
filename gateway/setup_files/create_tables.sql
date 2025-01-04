@@ -15,7 +15,7 @@ create table verifiers (
     ip varchar(30) not null,
     port varchar (6) not null,
     public_key text not null,
-    symmetric_key varchar(30)
+    symmetric_key text
 );
 
 drop table gateway_user;
