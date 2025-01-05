@@ -9,6 +9,7 @@ import (
 	"test.org/protocol/pkg"
 )
 
+// Deprecated: Because of redundancy this func is no longer needed
 func ParseGatewayVerifierGetInfoResponse(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 

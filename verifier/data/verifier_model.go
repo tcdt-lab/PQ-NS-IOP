@@ -82,6 +82,15 @@ func GetVerifierByIp(db *sql.DB, ip string) (Verifier, error) {
 	return verifier, nil
 }
 
+func GetVerifierByIpAndPort(db *sql.DB, ip string, port string) (Verifier, error) {
+	var verifier Verifier
+	rows := db.QueryRow("SELECT * FROM verifiers WHERE Ip = ? AND Port = ?", ip, port)
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+		return verifier, err
+	}
+	return verifier, nil
+}
+
 func GetVerifiersInCommittee(db *sql.DB) ([]Verifier, error) {
 	rows, err := db.Query("SELECT * FROM verifiers WHERE Is_In_Committee = 1")
 	var verifiers []Verifier
@@ -97,4 +106,13 @@ func GetVerifiersInCommittee(db *sql.DB) ([]Verifier, error) {
 	}
 
 	return verifiers, nil
+}
+
+func IfVerifierExists(db *sql.DB, verifier Verifier) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM verifiers WHERE Ip = ? AND Port = ?", verifier.Ip, verifier.Port).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

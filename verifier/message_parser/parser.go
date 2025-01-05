@@ -95,7 +95,7 @@ func (mp *MessageParser) GenerateGeneralErrorResponse(err error, c config.Config
 	msgInfo.Params = errorParams
 	msgData.MsgInfo = msgInfo
 	msgInfo.OperationTypeId = pkg.GENERAL_ERROR
-	msgUtil.SignMessageInfo(&msgData, verifeirUser.SecretKeySig, c.Security.MlDSAScheme)
+	msgUtil.SignMessageInfo(&msgData, verifeirUser.SecretKeySig, c.Security.DSAScheme)
 	msgDataByte, err := msgUtil.ConvertMessageDataToByte(msgData)
 	if err != nil {
 		zap.L().Error("Error while converting message data to byte", zap.Error(err))

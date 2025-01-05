@@ -34,7 +34,7 @@ func generatePublicKeyDSA() (string, string) {
 	msgUti := MessageUtilGenerator()
 	c, err := config.ReadYaml()
 	fmt.Println(err)
-	secKey, pubKey, _ := msgUti.AsymmetricHandler.DSKeyGen(c.Security.MlDSAScheme)
+	secKey, pubKey, _ := msgUti.AsymmetricHandler.DSKeyGen(c.Security.DSAScheme)
 	return secKey, pubKey
 }
 
@@ -43,7 +43,7 @@ func generatePublicKeyKEM() (string, string) {
 	c, err := config.ReadYaml()
 	fmt.Println(err)
 
-	secKey, pubKey, _ := msgUti.AsymmetricHandler.KEMKeyGen(c.Security.MlKEMScheme)
+	secKey, pubKey, _ := msgUti.AsymmetricHandler.KEMKeyGen(c.Security.KEMScheme)
 	return secKey, pubKey
 }
 func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
@@ -61,8 +61,8 @@ func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
 	msgParams.GatewayCompanyName = "company"
 	msgParams.GatewayPort = "8000"
 	msgParams.GatewayIP = "127.0.0.1"
-	msgParams.GatewaySignatureScheme = c.Security.MlDSAScheme
-	msgParams.GatewayKemScheme = c.Security.MlKEMScheme
+	msgParams.GatewaySignatureScheme = c.Security.DSAScheme
+	msgParams.GatewayKemScheme = c.Security.KEMScheme
 	msgParams.GatewayPublicKeySignature = dsaPubKey
 	msgParams.GatewayPublicKeyKem = kemPubKey
 
@@ -70,7 +70,7 @@ func FakeUnEncryptedMessageDataGenerator() (pkg.MessageData, string) {
 	msgInfo.Nonce = 123
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID
 	msgData.MsgInfo = msgInfo
-	err = msgutil.SignMessageInfo(&msgData, dsaSecKey, c.Security.MlDSAScheme)
+	err = msgutil.SignMessageInfo(&msgData, dsaSecKey, c.Security.DSAScheme)
 	fmt.Println(err)
 	return msgData, kemSecKey
 }

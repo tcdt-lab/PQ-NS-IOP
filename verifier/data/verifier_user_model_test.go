@@ -24,11 +24,11 @@ func generateVerifierUSerModels(protocolUtil pkg.ProtocolUtil, c *config.Config)
 	var verifierUser2 = VerifierUser{}
 	verifierUser1.Salt = b64.StdEncoding.EncodeToString([]byte("salt1"))
 	verifierUser1.Password = b64.StdEncoding.EncodeToString([]byte("vu_password1"))
-	secKeySig1, pubKeySig1, err := protocolUtil.AsymmetricHandler.DSKeyGen(c.Security.MlDSAScheme)
+	secKeySig1, pubKeySig1, err := protocolUtil.AsymmetricHandler.DSKeyGen(c.Security.DSAScheme)
 	if err != nil {
 		panic(err)
 	}
-	secKeyKem1, pubKeyKem1, err := protocolUtil.AsymmetricHandler.KEMKeyGen(c.Security.MlKEMScheme)
+	secKeyKem1, pubKeyKem1, err := protocolUtil.AsymmetricHandler.KEMKeyGen(c.Security.KEMScheme)
 	if err != nil {
 		panic(err)
 	}
@@ -39,11 +39,11 @@ func generateVerifierUSerModels(protocolUtil pkg.ProtocolUtil, c *config.Config)
 
 	verifierUser2.Salt = b64.StdEncoding.EncodeToString([]byte("salt2"))
 	verifierUser2.Password = os.Getenv("PQ_NS_IOP_VU_PASS")
-	secKeySig2, pubKeySig2, err := protocolUtil.AsymmetricHandler.DSKeyGen(c.Security.MlDSAScheme)
+	secKeySig2, pubKeySig2, err := protocolUtil.AsymmetricHandler.DSKeyGen(c.Security.DSAScheme)
 	if err != nil {
 		panic(err)
 	}
-	secKeyKem2, pubKeyKem2, err := protocolUtil.AsymmetricHandler.KEMKeyGen(c.Security.MlKEMScheme)
+	secKeyKem2, pubKeyKem2, err := protocolUtil.AsymmetricHandler.KEMKeyGen(c.Security.KEMScheme)
 	if err != nil {
 		panic(err)
 	}

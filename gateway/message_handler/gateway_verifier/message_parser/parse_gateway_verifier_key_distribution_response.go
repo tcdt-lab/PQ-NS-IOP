@@ -8,6 +8,7 @@ import (
 	"test.org/protocol/pkg"
 )
 
+// Deprecated: Because of redundancy this func is no longer needed
 func ParseGatewayVerifierKeyDistributionResponse(msgBytes []byte, sourceIp string, sourcePort string) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)

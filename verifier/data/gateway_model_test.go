@@ -122,4 +122,14 @@ func TestCrudGateways(t *testing.T) {
 		assert.NoError(t, err, "Error getting gateway by PublicKeyKem")
 		assert.Equal(t, gateways[0].PublicKeyKem, gateway.PublicKeyKem)
 	})
+
+	t.Run("IfExistGateway", func(t *testing.T) {
+		gateways, err := GetGateways(db)
+		assert.NoError(t, err, "Error getting gateways")
+		assert.Greater(t, len(gateways), 0, "Expected at least one gateway, got 0")
+		exist, err := IfGatewayExists(db, gateways[0])
+		assert.NoError(t, err, "Error checking if gateway exists")
+		assert.True(t, exist, "Gateway should exist")
+
+	})
 }

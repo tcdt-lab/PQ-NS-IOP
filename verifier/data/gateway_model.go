@@ -100,3 +100,23 @@ func GetGatewayByIp(db *sql.DB, ip string) (Gateway, error) {
 	}
 	return gateway, nil
 }
+
+func GetGatewayByIpAndPort(db *sql.DB, ip string, port string) (Gateway, error) {
+
+	var gateway Gateway
+	rows := db.QueryRow("SELECT * FROM gateways WHERE Ip = ? AND Port = ?", ip, port)
+	err := rows.Scan(&gateway.Id, &gateway.Ip, &gateway.Port, &gateway.PublicKeyKem, &gateway.PublicKeySig, &gateway.KemScheme, &gateway.SigScheme, &gateway.Ticket, &gateway.SymmetricKey)
+	if err != nil {
+		return Gateway{}, err
+	}
+	return gateway, nil
+}
+
+func IfGatewayExists(db *sql.DB, gateway Gateway) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM gateways WHERE Ip = ? AND Port = ?", gateway.Ip, gateway.Port).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

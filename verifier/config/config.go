@@ -16,16 +16,17 @@ type Config struct {
 }
 
 type DB struct {
-	Name     string `yaml:"name"`
-	Host     string `yaml:"host"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Name          string `yaml:"name"`
+	Host          string `yaml:"host"`
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	BootstrapNode string `yaml:"Bootstrap_Node"`
 }
 
 type Security struct {
 	LoginType          string `yaml:"login_type"`
-	MlDSAScheme        string `yaml:"mldsa_scheme"`
-	MlKEMScheme        string `yaml:"mlkem_scheme"`
+	DSAScheme          string `yaml:"dsa_scheme"`
+	KEMScheme          string `yaml:"kem_scheme"`
 	CryptographyScheme string `yaml:"cryptography_scheme"`
 }
 
@@ -33,10 +34,17 @@ type Server struct {
 	Protocol   string `yaml:"protocol"`
 	Port       string `yaml:"port"`
 	BufferSize int    `yaml:"buffer_size"`
+	Ip         string `yaml:"ip"`
 }
 
 type User struct {
 	Password string `yaml:"password"`
+}
+type BootstrapNode struct {
+	Ip        string `yaml:"ip"`
+	Port      string `yaml:"port"`
+	PubKeySig string `yaml:"pub_key_sig"`
+	PubKeyKem string `yaml:"pub_key_kem"`
 }
 
 type Trust struct {

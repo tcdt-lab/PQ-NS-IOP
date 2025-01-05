@@ -96,7 +96,7 @@ func SendAndAwaitReplyToVerifier(verifier data.Verifier, msg []byte) ([]byte, er
 	zap.L().Info("Response from verifier", zap.ByteString("response", response.Bytes()))
 	fmt.Println("Response from verifier", response.Bytes())
 
-	return nil
+	return response.Bytes(), nil
 }
 
 func parseMessage(buffer []byte) ([]byte, error) {
