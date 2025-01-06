@@ -9,7 +9,7 @@ import (
 	"verifier/message_parser/util"
 )
 
-func ParseGatewayVerifierRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
+func ParseRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)

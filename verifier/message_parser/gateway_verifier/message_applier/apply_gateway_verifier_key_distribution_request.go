@@ -6,6 +6,7 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/config"
 	"verifier/data"
+	"verifier/data/transactions/tx_gateway_verifier"
 	"verifier/data_access"
 	"verifier/message_parser/util"
 )
@@ -32,11 +33,15 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData) (string
 	gateway.SymmetricKey = protoUtil.AesHandler.ConvertKeyBytesToStr64(sharedKey)
 	gateway.Ticket = ""
 
-	gDA := data_access.GatewayDA{}
-	_, err = gDA.AddGateway(gateway)
+	vuDA := data_access.VerifierUserDA{}
+	verifierUSer, err := vuDA.GetAdminVerifierUser()
 	if err != nil {
 		return "", err
 	}
-
+	verifierUSer.SecretKeyKem = gateway.SymmetricKey
+	err = tx_gateway_verifier.SharedKeyAndGatewayRegistration(verifierUSer, gateway)
+	if err != nil {
+		return "", err
+	}
 	return cipherTextStr, nil
 }

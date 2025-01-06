@@ -78,3 +78,32 @@ func (vuda *VerifierUserDA) GetVerifierUserByPassword(password string) (data.Ver
 	}
 	return data.GetVerifierUserByPassword(db, password)
 }
+func (vuda *VerifierUserDA) AddUpdateVerifierUSer(vu data.VerifierUser) (int64, error) {
+	db, err := getDbConnection()
+	if err != nil {
+		return 0, err
+	}
+	if exist, _ := data.IsVerifierUserExist(db, 1); exist {
+		return data.UpdateVerifierUser(&vu, db)
+	} else {
+		return data.AddVerifierUser(&vu, db)
+	}
+}
+func (vuda *VerifierUserDA) SetUpAdminVerifierUser(publicKeyKem string, secKeyKem string, pubKeySig string, secKeySig string) (int64, error) {
+	verifierUser := data.VerifierUser{}
+	verifierUser.Id = 1
+	verifierUser.PublicKeyKem = publicKeyKem
+	verifierUser.SecretKeyKem = secKeyKem
+	verifierUser.PublicKeySig = pubKeySig
+	verifierUser.SecretKeySig = secKeySig
+	return vuda.AddUpdateVerifierUSer(verifierUser)
+}
+
+func (vuda *VerifierUserDA) GetAdminVerifierUser() (data.VerifierUser, error) {
+
+	db, err := getDbConnection()
+	if err != nil {
+		return data.VerifierUser{}, err
+	}
+	return data.GetVerifierUserById(db, 1)
+}

@@ -57,8 +57,8 @@ func handleConnection(conn net.Conn, config *config.Config) {
 	}
 	zap.L().Info("Received data: ", zap.String("data", hex.EncodeToString(buffer.Bytes())))
 
-	var messageParser = message_parser.MessageParser{}
-	response, err := messageParser.ParseMessage(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
+	var messageParser = message_parser.MessageHandler{}
+	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
 	if err != nil {
 		zap.L().Error("Error parsing message: ", zap.Error(err))
 	}

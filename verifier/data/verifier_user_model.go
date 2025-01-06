@@ -10,10 +10,11 @@ type VerifierUser struct {
 	PublicKeySig string
 	SecretKeyKem string
 	PublicKeyKem string
+	SymmetricKey string
 }
 
 func AddVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
-	rowChange, err := db.Exec("INSERT INTO verifier_user (salt, password, secret_key_sig, public_key_sig, secret_key_kem, public_key_kem) VALUES(?, ?, ?, ?, ?, ?)", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem)
+	rowChange, err := db.Exec("INSERT INTO verifier_user (salt, password, secret_key_sig, public_key_sig, secret_key_kem, public_key_kem,symmetric_key) VALUES(?, ?, ?, ?, ?, ?,?)", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem, v.SymmetricKey)
 	if err != nil {
 		return 0, err
 	}
@@ -21,7 +22,7 @@ func AddVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
 }
 
 func UpdateVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
-	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=? WHERE id=?", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem, v.Id)
+	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE id=?", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.SymmetricKey, v.PublicKeyKem, v.Id)
 	if err != nil {
 		return 0, err
 	}
@@ -29,7 +30,7 @@ func UpdateVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
 }
 
 func UpdateVerifeirUserByPassword(v *VerifierUser, db *sql.DB) (int64, error) {
-	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=? WHERE password=?", v.Salt, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem, v.Password)
+	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE password=?", v.Salt, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem, v.SymmetricKey, v.Password)
 	if err != nil {
 		return 0, err
 	}
@@ -37,7 +38,7 @@ func UpdateVerifeirUserByPassword(v *VerifierUser, db *sql.DB) (int64, error) {
 }
 
 func UpdateVerifierUSerByPublicKeySig(v *VerifierUser, db *sql.DB) (int64, error) {
-	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, secret_key_kem=?, public_key_kem=? WHERE public_key_sig=?", v.Salt, v.Password, v.SecretKeySig, v.SecretKeyKem, v.PublicKeyKem, v.PublicKeySig)
+	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE public_key_sig=?", v.Salt, v.Password, v.SecretKeySig, v.SecretKeyKem, v.PublicKeyKem, v.SymmetricKey, v.PublicKeySig)
 	if err != nil {
 		return 0, err
 	}
@@ -85,4 +86,13 @@ func GetVerifierUserById(db *sql.DB, id int) (VerifierUser, error) {
 	var v VerifierUser
 	err := db.QueryRow("SELECT * FROM verifier_user WHERE id = ?", id).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem)
 	return v, err
+}
+
+func IsVerifierUserExist(db *sql.DB, id int) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM verifier_user WHERE id = ?", id).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

@@ -30,5 +30,6 @@ CREATE TABLE verifier_user (
     secret_key_sig TEXT NOT NULL,
     public_key_sig TEXT NOT NULL,
     secret_key_kem TEXT NOT NULL,
-    public_key_kem TEXT NOT NULL
+    public_key_kem TEXT NOT NULL,
+    symmetric_key TEXT
 );

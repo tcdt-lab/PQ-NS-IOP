@@ -7,80 +7,60 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"test.org/protocol/pkg"
+	"verifier/logic"
+	"verifier/message_parser/gateway_verifier/message_parser"
+	"verifier/utility"
 
-	"verifier/message_parser/gateway_verifier"
 	"verifier/message_parser/util"
 
 	"verifier/config"
 	"verifier/data"
 )
 
-type MessageParser struct {
+type MessageHandler struct {
 }
 
-// Get a Message, parse it and then and generate an appropriate response
-// all signiture checking and decryption should be done in parser
-func (mp *MessageParser) ParseMessage(msg []byte, senderIp string, senderPort string, c config.Config) ([]byte, error) {
-	protoUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
-	message, err := protoUtil.ConvertByteToMessage(msg)
-	var messageData pkg.MessageData
-	db, err := util.GetDBConnection(c)
+func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, senderPort string, c config.Config) ([]byte, error) {
+	var response []byte
+	cfg, err := config.ReadYaml()
+	responseLogic := logic.ResponseLogic{}
+
 	if err != nil {
 		return nil, err
 	}
+	db, err := utility.GetDBConnection(c)
 	if err != nil {
 		return nil, err
 	}
-	if message.IsEncrypted {
-
-		if err != nil {
-			return nil, err
-		}
-		symmetricKey, _, err := util.GetSenderKeys(senderIp, c)
-		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-		}
-		messageData, err = mp.decryptMessageData(message.Data, symmetricKey, c)
-		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-		}
-
-	} else { //if message is not encrypted it is in an init message, so keys are in the message body. In the handler we will check signature/hmac
-		msgDataBytes, err := b64.StdEncoding.DecodeString(message.Data)
-		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-		}
-		messageData, err = protoUtil.ConvertByteToMessageData(msgDataBytes)
-
-		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, c, messageData, db), err
-		}
-	}
-
-	return mp.generateResponse(messageData, senderIp, senderPort, c)
-}
-
-func (mp *MessageParser) decryptMessageData(msgData string, symmetricKey string, c config.Config) (pkg.MessageData, error) {
-
-	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
-	decryptedMsg, err := msgUtil.DecryptMessageData(msgData, symmetricKey)
+	msgData, err := message_parser.ParseRequest(message, senderIp, senderPort)
 	if err != nil {
-		return pkg.MessageData{}, err
+		return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
 	}
-	return decryptedMsg, nil
-}
 
-func (mp *MessageParser) generateResponse(msgData pkg.MessageData, senderIp string, senderPort string, c config.Config) ([]byte, error) {
 	switch msgData.MsgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
-		return gateway_verifier.GatewayVerifierKeyDistributionHandler(msgData, c)
+		response, err = responseLogic.HandleKeyDistributionResponse(message, senderIp, senderPort)
+		if err != nil {
+			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
+		}
+		return response, nil
+
+	case pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_REQEST:
+		response, err = responseLogic.HandleGetInfoResponse(message, senderIp, senderPort)
+		if err != nil {
+			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
+		}
+		return response, nil
 	}
-	return nil, errors.New("Operation type not found")
+
+	errOperation := errors.New("Operation type not found")
+	return mp.GenerateGeneralErrorResponse(errOperation, *cfg, db), errOperation
 }
 
 // go to util
-func (mp *MessageParser) GenerateGeneralErrorResponse(err error, c config.Config, incomingMsg pkg.MessageData, db *sql.DB) []byte {
+func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Config, db *sql.DB) []byte {
 	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
+
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
