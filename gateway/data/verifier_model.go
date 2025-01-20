@@ -89,7 +89,7 @@ func GetVerifierByIpandPort(db *sql.DB, ip string, port string) (Verifier, error
 	return verifier, nil
 }
 
-func IfVerifierExists(db *sql.DB, verifier Verifier) (bool, error) {
+func IfVerifierExistsWithIPandPort(db *sql.DB, verifier Verifier) (bool, error) {
 	rows := db.QueryRow("SELECT * FROM verifiers WHERE Ip = ? AND Port = ?", verifier.Ip, verifier.Port)
 	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKey, &verifier.SymmetricKey); err != nil {
 		return false, nil

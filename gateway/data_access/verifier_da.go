@@ -68,12 +68,12 @@ func (vl *VerifierDA) GetVerifierByIP(ip string) (data.Verifier, error) {
 	return data.GetVerifierByIP(db, ip)
 }
 
-func (vl *VerifierDA) IfVerifierExists(verifier data.Verifier) (bool, error) {
+func (vl *VerifierDA) IfVerifierExistsByIpandPort(verifier data.Verifier) (bool, error) {
 	db, err := getDbConnection()
 	if err != nil {
 		return false, err
 	}
-	return data.IfVerifierExists(db, verifier)
+	return data.IfVerifierExistsWithIPandPort(db, verifier)
 }
 
 func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
@@ -82,7 +82,7 @@ func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
 		return err
 	}
 	for _, v := range verifier {
-		if exist, _ := data.IfVerifierExists(db, v); exist {
+		if exist, _ := data.IfVerifierExistsWithIPandPort(db, v); exist {
 			if _, err := data.UpdateVerifier(db, v); err != nil {
 				return err
 			}

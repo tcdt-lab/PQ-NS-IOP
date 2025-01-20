@@ -93,3 +93,15 @@ func GetGatewayUserByPublicKeyKem(db *sql.DB, publicKeyKem string) (GatewayUser,
 	}
 	return user, nil
 }
+
+func IfGatewayUserExist(db *sql.DB, id int) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM gateway_user WHERE id = ?", id).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}

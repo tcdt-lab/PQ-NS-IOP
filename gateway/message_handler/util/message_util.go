@@ -25,6 +25,7 @@ func ProtocolUtilGenerator(cryptographySchemeName string) pkg.ProtocolUtil {
 	util.AesHandler = symmetric.AesGcm{}
 	util.AsymmetricHandler = asymmetric.NewAsymmetricHandler(cryptographySchemeName)
 	util.HmacHandler = symmetric.HMAC{}
+	util.PBKDF2Handler = symmetric.PBKDF2{}
 	util.RegisterInterfacesInGob()
 	return util
 }

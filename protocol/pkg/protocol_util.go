@@ -15,6 +15,7 @@ type ProtocolUtil struct {
 	AsymmetricHandler asymmetric.AsymmetricHandler
 	AesHandler        symmetric.AesGcm
 	HmacHandler       symmetric.HMAC
+	PBKDF2Handler     symmetric.PBKDF2
 }
 
 func (mp *ProtocolUtil) RegisterInterfacesInGob() {
