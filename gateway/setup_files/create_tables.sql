@@ -1,4 +1,3 @@
-
 drop table gateways;
 CREATE table gateways (
     id int primary key AUTO_INCREMENT,
@@ -21,8 +20,8 @@ create table verifiers (
 drop table gateway_user;
 create table gateway_user (
     id int primary key auto_increment,
-    salt varchar(30) not null,
-    password varchar(64) not null,
+    salt text not null,
+    password text not null,
     public_key_dsa text not null,
     secret_key_dsa text not null,
     public_key_kem text not null,

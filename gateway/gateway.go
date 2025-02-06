@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gateway/config"
 	"gateway/logic"
 	_ "github.com/go-sql-driver/mysql"
@@ -19,11 +20,14 @@ func main() {
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
 
-	//	KeyGen
-	bootstrapId, adminId, err := logic.KeyGenLogic(c)
+	fmt.Println("Hello World")
+
+	//Init Steps
+	//1.Generate DSA and KEM KEYS and Save Admin and Bootstrap Verifier data
+	bootstrapId, adminId, err := logic.InintStepLogic(c)
 	zap.L().Info("BootstrapId and AdminId", zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", adminId))
 
-	//keyDistribution
+	//2. Run Boostrap Key Distribution State Machine
 
 	if err != nil {
 		zap.L().Error("Error while generating keys", zap.Error(err))

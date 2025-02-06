@@ -2,9 +2,9 @@ module verifier
 
 go 1.23.2
 
-replace test.org/cryptography => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/cryptography_helper
+replace test.org/cryptography => /home/koosha/Desktop/PQ-NS-IOP/cryptography_helper
 
-replace test.org/protocol => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/protocol
+replace test.org/protocol => /home/koosha/Desktop/PQ-NS-IOP/protocol
 
 require (
 	github.com/go-sql-driver/mysql v1.8.1

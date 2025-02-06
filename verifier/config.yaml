@@ -1,0 +1,34 @@
+DB:
+  name: mock_vfr_pq_ns_iop
+  username: koosha
+  password: koosha327!@#
+  host: localhost
+
+Server:
+  port: 50051
+  protocol: tcp
+  buffer_size: 1024
+  ip: 127.0.0.1
+
+Security:
+  login_type: PASSWORD # It could be PASSWORD or ENV
+  #  dsa_scheme: p256
+  #  kem_scheme: x25519
+  #  cryptography_scheme: ECC
+  dsa_scheme: ML-DSA-65
+  kem_scheme: ML-KEM-768
+  cryptography_scheme: PQ
+User:
+  password: 123456
+
+Bootstrap_Node:
+  ip: 127.0.0.1
+  port: 50051
+  public_key_sig: 0x04
+  public_key_kem: 0x04
+
+Trust:
+  score_scheme: baseline #popoviciu or baseline
+  baseline_discount_factor: 0.1
+  exponent_adjustment: 15
+

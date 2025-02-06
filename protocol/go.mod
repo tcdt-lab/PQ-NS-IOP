@@ -18,4 +18,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace test.org/cryptography => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/cryptography_helper
+replace test.org/cryptography => /home/koosha/Desktop/PQ-NS-IOP/cryptography_helper

@@ -10,7 +10,7 @@ import (
 	"test.org/cryptography/pkg/asymmetric"
 )
 
-func KeyGenLogic(cfg *config.Config) (int64, int64, error) {
+func InintStepLogic(cfg *config.Config) (int64, int64, error) {
 
 	admin := data.GatewayUser{}
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)

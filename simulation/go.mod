@@ -18,8 +18,8 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 )
 
-replace test.org/verifier => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/verifier
+replace test.org/verifier => /home/koosha/Desktop/PQ-NS-IOP/verifier
 
-replace test.org/protocol => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/protocol
+replace test.org/protocol => /home/koosha/Desktop/PQ-NS-IOP/protocol
 
-replace test.org/cryptography => /home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/cryptography_helper
+replace test.org/cryptography => /home/koosha/Desktop/PQ-NS-IOP/cryptography_helper
