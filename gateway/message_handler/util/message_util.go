@@ -3,6 +3,7 @@ package util
 import (
 	"crypto/rand"
 	"database/sql"
+	"encoding/binary"
 	"encoding/hex"
 	"gateway/config"
 	"gateway/data_access"
@@ -61,4 +62,13 @@ func CheckMessageSignature(msg *pkg.MessageData, sourceIp string, sourcePort str
 
 func CheckMessageHMac(msg *pkg.MessageData, symmetricKey string, util pkg.ProtocolUtil) (bool, error) {
 	return util.VerifyHmac(*msg, symmetricKey)
+}
+
+func GenerateRequestNumber() (int64, error) {
+	var requestNumber int64
+	err := binary.Read(rand.Reader, binary.LittleEndian, &requestNumber)
+	if err != nil {
+		return 0, err
+	}
+	return requestNumber, nil
 }

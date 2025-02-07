@@ -36,7 +36,7 @@ func (sm *BoostrapKeyStateMachine) SetStateMachineName(stateMachineName string) 
 	sm.StateMachineName = stateMachineName
 }
 
-func (sm *BoostrapKeyStateMachine) GenerateBootstrapStateMachine() BoostrapKeyStateMachine {
+func (sm *BoostrapKeyStateMachine) GenerateBootstrapStateMachine(requestId int) BoostrapKeyStateMachine {
 	//generating states
 	//state 1: "start"
 	startState := State{
@@ -61,4 +61,6 @@ func (sm *BoostrapKeyStateMachine) GenerateBootstrapStateMachine() BoostrapKeySt
 			}
 		}
 	}
+
+
 }
