@@ -56,7 +56,7 @@ type Trust struct {
 func ReadYaml() (*Config, error) {
 	c := &Config{}
 
-	yamlFile, err := os.ReadFile("/home/koosha/Desktop/Thesis/impl/PQ-NS-IOP/verifier/config/config.yaml")
+	yamlFile, err := os.ReadFile("/home/koosha/Desktop/PQ-NS-IOP/verifier/config/config.yaml")
 	if err != nil {
 		zap.L().Error("Error reading config.yaml file", zap.Error(err))
 		return nil, err

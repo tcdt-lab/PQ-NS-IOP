@@ -10,6 +10,7 @@ type ResponseLogic struct{}
 
 func (rl *ResponseLogic) HandleKeyDistributionResponse(message []byte, senderIp string, senderPort string) ([]byte, error) {
 
+	msgData, err := message_parser.ParseRequest(message, senderIp, senderPort)
 	cipherText, err := message_applier.ApplyGatewayVerifierKeyDistributionRequest(msgData)
 	if err != nil {
 		return nil, err
