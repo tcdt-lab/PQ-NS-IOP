@@ -27,6 +27,7 @@ type MessageData struct {
 }
 
 type MessageInfo struct {
+	RequestId       int64       "json:requestId"
 	OperationTypeId int         "json:operationTypeId"
 	Params          interface{} "json:params"
 	SourceId        string      "json:sourceId"

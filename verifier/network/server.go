@@ -3,12 +3,10 @@ package network
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"go.uber.org/zap"
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"verifier/config"
 	"verifier/message_parser"
 )
@@ -38,13 +36,13 @@ func handleConnection(conn net.Conn, config *config.Config) {
 	var i = 0
 	for {
 		i += 1
-		fmt.Print("Reading data\n" + strconv.Itoa(i))
+
 		buf := make([]byte, config.Server.BufferSize)
 		n, err := conn.Read(buf)
-		fmt.Print("Reading sss\n" + strconv.Itoa(i))
+
 		buffer.Write(buf[:n])
 		bufferSize += n
-		fmt.Print("Reading aaaa\n" + strconv.Itoa(i))
+
 		if err == io.EOF {
 			zap.L().Error("No more info to read:", zap.Error(err))
 			break

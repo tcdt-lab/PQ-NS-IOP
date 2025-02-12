@@ -16,7 +16,7 @@ func KeyDistributionLogicApply() error {
 	}
 	vDa := data_access.VerifierDA{}
 	bootstrapVerifier, err := vDa.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
-	msgBytes := message_creator.CreateGatewayVerifierKeyDistributionMessage(cfg)
+	msgBytes := message_creator.CreateGatewayVerifierKeyDistributionMessage(cfg, -1)
 	responseBytes, err := network.SendAndAwaitReplyToVerifier(bootstrapVerifier, msgBytes)
 	if err != nil {
 		return err

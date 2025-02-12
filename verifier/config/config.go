@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	DB       DB       `yaml:"DB"`
-	Security Security `yaml:"Security"`
-	Server   Server   `yaml:"Server"`
-	User     User     `yaml:"User"`
-	Trust    Trust    `yaml:"Trust"`
+	DB            DB            `yaml:"DB"`
+	Security      Security      `yaml:"Security"`
+	Server        Server        `yaml:"Server"`
+	User          User          `yaml:"User"`
+	Trust         Trust         `yaml:"Trust"`
+	BootstrapNode BootstrapNode `yaml:"Bootstrap_Node"`
 	// Ensure this matches the YAML key
 }
 

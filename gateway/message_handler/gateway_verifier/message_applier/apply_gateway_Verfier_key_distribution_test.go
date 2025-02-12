@@ -27,6 +27,7 @@ func createFakeMsgData(t *testing.T, pubKeyKemGateway string) (pkg.MessageData, 
 	msgInfo.Params = gvResponse
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID
 	msgInfo.Nonce = "123"
+
 	msgData.MsgInfo = msgInfo
 	//pkgUtil.SignMessageInfo(&msgData, , cfg.Security.DSAScheme)
 	msgDataStr, err := pkgUtil.ConvertMessageDataToB64String(msgData)

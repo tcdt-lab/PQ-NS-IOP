@@ -1,4 +1,4 @@
--- DROP TABLE gateways;
+DROP TABLE gateways;
 CREATE TABLE gateways (
     id INT PRIMARY KEY AUTO_INCREMENT,
     ip VARCHAR(30) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE gateways (
     symmetric_key TEXT
 );
 
--- DROP TABLE verifiers;
+DROP TABLE verifiers;
 CREATE TABLE verifiers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     ip VARCHAR(30) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE verifiers (
     trust_Score double,
     is_in_committee BOOLEAN
 );
--- DROP TABLE verifier_user;
+DROP TABLE verifier_user;
 CREATE TABLE verifier_user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     salt TEXT NOT NULL,

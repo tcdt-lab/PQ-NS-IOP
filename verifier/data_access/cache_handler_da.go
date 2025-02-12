@@ -1,9 +1,9 @@
 package data_access
 
 import (
-	"gateway/data"
 	"github.com/redis/go-redis/v9"
 	"strconv"
+	"verifier/data"
 )
 
 type CacheHandlerDA struct {
@@ -20,7 +20,7 @@ func NewCacheHandlerDA() *CacheHandlerDA {
 	}
 }
 
-func (c *CacheHandlerDA) GetUserAdminId() (int, error) {
+func (c *CacheHandlerDA) GetUserAdminId() (int64, error) {
 	cacheHandler := data.CacheHandler{}
 
 	res, err := cacheHandler.GetUserAdminId(c.client, "user_admin_id")
@@ -30,7 +30,7 @@ func (c *CacheHandlerDA) GetUserAdminId() (int, error) {
 	return res, nil
 }
 
-func (c *CacheHandlerDA) SetUserAdminId(value int) error {
+func (c *CacheHandlerDA) SetUserAdminId(value int64) error {
 	cacheHandler := data.CacheHandler{}
 
 	err := cacheHandler.SetUserAdminId(c.client, "user_admin_id", value)
@@ -40,7 +40,7 @@ func (c *CacheHandlerDA) SetUserAdminId(value int) error {
 	return nil
 }
 
-func (c *CacheHandlerDA) SetBootstrapVerifierId(value int) error {
+func (c *CacheHandlerDA) SetBootstrapVerifierId(value int64) error {
 	cacheHandler := data.CacheHandler{}
 
 	err := cacheHandler.SetBootstrapVerifierId(c.client, "bootstrap_verifier_id", value)
@@ -50,7 +50,7 @@ func (c *CacheHandlerDA) SetBootstrapVerifierId(value int) error {
 	return nil
 }
 
-func (c *CacheHandlerDA) GetBootstrapVerifierId() (int, error) {
+func (c *CacheHandlerDA) GetBootstrapVerifierId() (int64, error) {
 	cacheHandler := data.CacheHandler{}
 
 	res, err := cacheHandler.GetBootstrapVerifierId(c.client, "bootstrap_verifier_id")

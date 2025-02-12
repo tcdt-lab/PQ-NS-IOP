@@ -1,6 +1,9 @@
 package data
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type VerifierUser struct {
 	Id           int
@@ -82,9 +85,10 @@ func GetVerifierUserByPassword(db *sql.DB, password string) (VerifierUser, error
 	err := db.QueryRow("SELECT * FROM verifier_user WHERE password = ?", password).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem)
 	return v, err
 }
-func GetVerifierUserById(db *sql.DB, id int) (VerifierUser, error) {
+func GetVerifierUserById(db *sql.DB, id int64) (VerifierUser, error) {
 	var v VerifierUser
-	err := db.QueryRow("SELECT * FROM verifier_user WHERE id = ?", id).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem)
+	err := db.QueryRow("SELECT * FROM verifier_user WHERE id = ?", id).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem, &v.SymmetricKey)
+	fmt.Print(err)
 	return v, err
 }
 

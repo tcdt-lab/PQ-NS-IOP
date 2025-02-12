@@ -12,14 +12,16 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func CreateGatewayVerifierKeyDistributionMessage(c *config.Config) []byte {
+func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int64) []byte {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
 	guDa := data_access.GatewayUserDA{}
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var nonce string
-	currentUSer, err := guDa.GetGatewayUser(1)
+	cachHandler := data_access.NewCacheHandlerDA()
+	adminId, err := cachHandler.GetUserAdminId()
+	currentUSer, err := guDa.GetGatewayUser(adminId)
 	if err != nil {
 		fmt.Println(err)
 		zap.L().Error("Error while getting current gateway user", zap.Error(err))
@@ -42,6 +44,7 @@ func CreateGatewayVerifierKeyDistributionMessage(c *config.Config) []byte {
 	msgInfo.Nonce = nonce
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID
 	msgInfo.Params = gvKeyDistributionReq
+	msgInfo.RequestId = requestId
 	msgData.MsgInfo = msgInfo
 	err = protocolUtil.SignMessageInfo(&msgData, currentUSer.SecretKeyDsa, c.Security.DSAScheme)
 	if err != nil {

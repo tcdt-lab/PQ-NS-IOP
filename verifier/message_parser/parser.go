@@ -39,14 +39,14 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 
 	switch msgData.MsgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
-		response, err = responseLogic.HandleKeyDistributionResponse(message, senderIp, senderPort)
+		response, err = responseLogic.HandleKeyDistributionResponse(msgData, senderIp, senderPort)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
 		}
 		return response, nil
 
 	case pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_REQEST:
-		response, err = responseLogic.HandleGetInfoResponse(message, senderIp, senderPort)
+		response, err = responseLogic.HandleGetInfoResponse()
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
 		}

@@ -44,6 +44,9 @@ func ParseGatewayVerifierResponse(msgBytes []byte, senderIp string, senderPort s
 		}
 	}
 	if msgData.Hmac != "" {
+		if msgData.MsgInfo.OperationTypeId == pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID {
+			return msgData, nil
+		}
 		res, err := protoUtil.VerifyHmac(msgData, senderVerfier.SymmetricKey)
 
 		if err != nil {

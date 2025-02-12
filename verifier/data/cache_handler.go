@@ -9,16 +9,16 @@ import (
 type CacheHandler struct {
 }
 
-func (c *CacheHandler) GetUserAdminId(client *redis.Client, key string) (int, error) {
+func (c *CacheHandler) GetUserAdminId(client *redis.Client, key string) (int64, error) {
 	ctx := context.Background()
-	val, err := client.Get(ctx, key).Int()
+	val, err := client.Get(ctx, key).Int64()
 	if err != nil {
 		return -1, err
 	}
 	return val, nil
 }
 
-func (c *CacheHandler) SetUserAdminId(client *redis.Client, key string, value int) error {
+func (c *CacheHandler) SetUserAdminId(client *redis.Client, key string, value int64) error {
 	ctx := context.Background()
 	_, err := client.Set(ctx, key, value, 0).Result()
 	if err != nil {
@@ -27,16 +27,16 @@ func (c *CacheHandler) SetUserAdminId(client *redis.Client, key string, value in
 	return nil
 }
 
-func (c *CacheHandler) GetBootstrapVerifierId(client *redis.Client, key string) (int, error) {
+func (c *CacheHandler) GetBootstrapVerifierId(client *redis.Client, key string) (int64, error) {
 	ctx := context.Background()
-	val, err := client.Get(ctx, key).Int()
+	val, err := client.Get(ctx, key).Int64()
 	if err != nil {
 		return -1, err
 	}
 	return val, nil
 }
 
-func (c *CacheHandler) SetBootstrapVerifierId(client *redis.Client, key string, value int) error {
+func (c *CacheHandler) SetBootstrapVerifierId(client *redis.Client, key string, value int64) error {
 	ctx := context.Background()
 	_, err := client.Set(ctx, key, value, 0).Result()
 	if err != nil {

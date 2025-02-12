@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
+	"strconv"
 )
 
 type BoostrapFSM struct {
@@ -12,23 +13,23 @@ type BoostrapFSM struct {
 	IsInTraverseMode bool   `redis: "is_in_traverse_mode"`
 }
 
-func (b *BoostrapFSM) GetBoostrapFSM(client *redis.Client, stateMachineName string, reqId string) (BoostrapFSM, error) {
+func (b *BoostrapFSM) GetBoostrapFSM(client *redis.Client, stateMachineName string, reqId int64) (BoostrapFSM, error) {
 	var bootstrapFSM BoostrapFSM
 	ctx := context.Background()
-	err := client.HGetAll(ctx, stateMachineName+":"+reqId).Scan(&bootstrapFSM)
+	err := client.HGetAll(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10)).Scan(&bootstrapFSM)
 	if err != nil {
 		return BoostrapFSM{}, err
 	}
 	return bootstrapFSM, nil
 }
 
-func (b *BoostrapFSM) SetBoostrapFSM(client *redis.Client, stateMachineName string, reqId string, fsm BoostrapFSM) error {
+func (b *BoostrapFSM) SetBoostrapFSM(client *redis.Client, stateMachineName string, reqId int64, fsm BoostrapFSM) error {
 	ctx := context.Background()
 	_, err := client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.HSet(ctx, stateMachineName+":"+reqId, "state_machine_name", fsm.StateMachineName)
-		pipe.HSet(ctx, stateMachineName+":"+reqId, "current_state", fsm.CurrentState)
-		pipe.HSet(ctx, stateMachineName+":"+reqId, "is_state_final", fsm.IsStateFinal)
-		pipe.HSet(ctx, stateMachineName+":"+reqId, "is_in_traverse_mode", fsm.IsInTraverseMode)
+		pipe.HSet(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10), "state_machine_name", fsm.StateMachineName)
+		pipe.HSet(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10), "current_state", fsm.CurrentState)
+		pipe.HSet(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10), "is_state_final", fsm.IsStateFinal)
+		pipe.HSet(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10), "is_in_traverse_mode", fsm.IsInTraverseMode)
 		return nil
 	})
 	if err != nil {
@@ -37,9 +38,9 @@ func (b *BoostrapFSM) SetBoostrapFSM(client *redis.Client, stateMachineName stri
 	return nil
 }
 
-func (b *BoostrapFSM) RemoveBootstrapFSM(client *redis.Client, stateMachineName string, reqId string) error {
+func (b *BoostrapFSM) RemoveBootstrapFSM(client *redis.Client, stateMachineName string, reqId int64) error {
 	ctx := context.Background()
-	_, err := client.Del(ctx, stateMachineName+":"+reqId).Result()
+	_, err := client.Del(ctx, stateMachineName+":"+strconv.FormatInt(reqId, 10)).Result()
 	if err != nil {
 		return err
 	}

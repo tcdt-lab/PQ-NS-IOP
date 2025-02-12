@@ -1,6 +1,8 @@
 package data_access
 
-import "verifier/data"
+import (
+	"verifier/data"
+)
 
 type VerifierUserDA struct {
 }
@@ -58,7 +60,7 @@ func (vuda *VerifierUserDA) GetVerifierUser(id int) (data.VerifierUser, error) {
 	if err != nil {
 		return data.VerifierUser{}, err
 	}
-	return data.GetVerifierUserById(db, id)
+	return data.GetVerifierUserById(db, int64(id))
 }
 
 func (vuda *VerifierUserDA) GetVerifierUserByPublicKeySig(publicKeySig string) (data.VerifierUser, error) {
@@ -105,5 +107,7 @@ func (vuda *VerifierUserDA) GetAdminVerifierUser() (data.VerifierUser, error) {
 	if err != nil {
 		return data.VerifierUser{}, err
 	}
-	return data.GetVerifierUserById(db, 1)
+	cacheHandler := NewCacheHandlerDA()
+	adminId, err := cacheHandler.GetUserAdminId()
+	return data.GetVerifierUserById(db, adminId)
 }

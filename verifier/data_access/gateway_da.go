@@ -82,9 +82,17 @@ func (gDa *GatewayDA) AddUpdateGateway(gateway data.Gateway) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if gatewayExist, _ := data.IfGatewayExists(db, gateway); gatewayExist {
+	if gatewayExist, _ := data.IfGatewayExists(db, gateway.Ip, gateway.Port); gatewayExist {
 		return data.UpdateGateway(db, gateway)
 	} else {
 		return data.AddGateway(db, gateway)
 	}
+}
+
+func (gda *GatewayDA) IfGatewayExist(ip string, port string) (bool, error) {
+	db, err := getDbConnection()
+	if err != nil {
+		return false, err
+	}
+	return data.IfGatewayExists(db, ip, port)
 }

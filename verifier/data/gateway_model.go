@@ -112,9 +112,9 @@ func GetGatewayByIpAndPort(db *sql.DB, ip string, port string) (Gateway, error) 
 	return gateway, nil
 }
 
-func IfGatewayExists(db *sql.DB, gateway Gateway) (bool, error) {
+func IfGatewayExists(db *sql.DB, ip string, port string) (bool, error) {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM gateways WHERE Ip = ? AND Port = ?", gateway.Ip, gateway.Port).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM gateways WHERE Ip = ? AND Port = ?", ip, port).Scan(&count)
 	if err != nil {
 		return false, err
 	}

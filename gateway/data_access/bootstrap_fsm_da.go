@@ -19,7 +19,7 @@ func NewBootstrapFsmDA() *BootstrapFsmDA {
 	}
 }
 
-func (b *BootstrapFsmDA) GetBootstrapFSM(stateMachineName string, reqId string) (data.BoostrapFSM, error) {
+func (b *BootstrapFsmDA) GetBootstrapFSM(stateMachineName string, reqId int64) (data.BoostrapFSM, error) {
 
 	boostrapFSM := data.BoostrapFSM{}
 
@@ -30,7 +30,7 @@ func (b *BootstrapFsmDA) GetBootstrapFSM(stateMachineName string, reqId string) 
 	return boostrapFSM, nil
 }
 
-func (b *BootstrapFsmDA) SetBootstrapFSM(stateMachineName string, reqId string, CurrentState string, IsStateFinal bool, IsInTraverseMode bool) error {
+func (b *BootstrapFsmDA) SetBootstrapFSM(stateMachineName string, reqId int64, CurrentState string, IsStateFinal bool, IsInTraverseMode bool) error {
 
 	fsm := data.BoostrapFSM{
 		StateMachineName: stateMachineName,
@@ -45,7 +45,7 @@ func (b *BootstrapFsmDA) SetBootstrapFSM(stateMachineName string, reqId string, 
 	return nil
 }
 
-func (b *BootstrapFsmDA) RemoveBootstrapFSM(stateMachineName string, reqId string) error {
+func (b *BootstrapFsmDA) RemoveBootstrapFSM(stateMachineName string, reqId int64) error {
 	fsm := data.BoostrapFSM{}
 	err := fsm.RemoveBootstrapFSM(b.client, stateMachineName, reqId)
 	if err != nil {
