@@ -29,6 +29,7 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 		return nil, err
 	}
 	db, err := utility.GetDBConnection(c)
+	defer db.Close()
 	if err != nil {
 		return nil, err
 	}

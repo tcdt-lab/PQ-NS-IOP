@@ -9,7 +9,7 @@ import (
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/data"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 
 	"verifier/config"
 )

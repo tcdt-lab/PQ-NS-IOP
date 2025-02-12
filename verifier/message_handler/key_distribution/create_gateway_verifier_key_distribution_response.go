@@ -5,7 +5,7 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/config"
 	"verifier/data_access"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 )
 
 func CreateGatewayVerifierKeyDistributionResponse(cipherTextStr string) ([]byte, error) {
@@ -14,8 +14,11 @@ func CreateGatewayVerifierKeyDistributionResponse(cipherTextStr string) ([]byte,
 		return nil, err
 	}
 
-	vuda := data_access.VerifierUserDA{}
-	vuda.GetVerifierUser(1)
+	vuda := data_access.GenerateVerifierUserDA()
+	defer vuda.CloseDbConnection()
+	cacheHandler := data_access.NewCacheHandlerDA()
+	adminId, _ := cacheHandler.GetUserAdminId()
+	vuda.GetVerifierUser(adminId)
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}

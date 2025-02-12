@@ -16,7 +16,8 @@ func CreateGateVerifierGetInfoResponse() ([]byte, error) {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
-	vuda := data_access.VerifierUserDA{}
+	vuda := data_access.GenerateVerifierUserDA()
+	defer vuda.CloseDbConnection()
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	gvGetInfoResponse := gateway_verifier.GatewayVerifierInitInfoOperationResponse{}
 	gvVerifier := []gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}
@@ -59,7 +60,8 @@ func CreateGateVerifierGetInfoResponse() ([]byte, error) {
 }
 
 func fillGateways(gatewaysStruct []gateway_verifier.GatewayVerifierInitInfoStructureGateway) ([]gateway_verifier.GatewayVerifierInitInfoStructureGateway, error) {
-	gDA := data_access.GatewayDA{}
+	gDA := data_access.GenerateGatewayDA()
+	defer gDA.CloseGatewayDaConnection()
 	allGateways, err := gDA.GetGateways()
 
 	for _, gateway := range allGateways {

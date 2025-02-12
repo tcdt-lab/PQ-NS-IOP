@@ -8,7 +8,7 @@ import (
 	"verifier/data"
 	"verifier/data/transactions/tx_gateway_verifier"
 	"verifier/data_access"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 )
 
 func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData) (string, error) {
@@ -33,7 +33,8 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData) (string
 	gateway.SymmetricKey = protoUtil.AesHandler.ConvertKeyBytesToStr64(sharedKey)
 	gateway.Ticket = ""
 
-	vuDA := data_access.VerifierUserDA{}
+	vuDA := data_access.GenerateVerifierUserDA()
+	defer vuDA.CloseDbConnection()
 	verifierUSer, err := vuDA.GetAdminVerifierUser()
 	if err != nil {
 		return "", err

@@ -6,7 +6,7 @@ import (
 	"test.org/protocol/pkg"
 	"verifier/config"
 	"verifier/data_access"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 )
 
 func ParseRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
@@ -25,7 +25,8 @@ func ParseRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.Mess
 	}
 
 	msgData := pkg.MessageData{}
-	gDA := data_access.GatewayDA{}
+	gDA := data_access.GenerateGatewayDA()
+	defer gDA.CloseGatewayDaConnection()
 	gatewayExists, err := gDA.IfGatewayExist(senderIp, senderPort)
 	if gatewayExists {
 		sourceGateway, err := gDA.GetGatewayByIpAndPort(senderIp, senderPort)
