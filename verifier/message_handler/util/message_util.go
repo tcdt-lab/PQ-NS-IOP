@@ -12,14 +12,6 @@ import (
 	"verifier/data"
 )
 
-func GetDBConnection(c config.Config) (*sql.DB, error) {
-	db, err := sql.Open("mysql", c.DB.Username+":"+c.DB.Password+"@/"+c.DB.Name)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
 func ProtocolUtilGenerator(cryptographySchemeName string) pkg.ProtocolUtil {
 	var util pkg.ProtocolUtil
 	util.AesHandler = symmetric.AesGcm{}
@@ -37,23 +29,4 @@ func GetUserInformation(db *sql.DB, c config.Config) (data.VerifierUser, error) 
 	}
 	return verifeirUser, nil
 
-}
-
-func GetSenderKeys(senderIp string, c config.Config) (string, string, error) {
-	db, err := GetDBConnection(c)
-	if err != nil {
-		return "", "", err
-	}
-	var gateway data.Gateway
-	var verifier data.Verifier
-
-	gateway, err = data.GetGatewayByIp(db, senderIp)
-	if err == nil {
-		return gateway.SymmetricKey, gateway.PublicKeySig, nil
-	}
-	verifier, err = data.GetVerifierByIp(db, senderIp)
-	if err != nil {
-		return "", "", err
-	}
-	return verifier.SymmetricKey, verifier.PublicKeySig, nil
 }

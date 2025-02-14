@@ -1,14 +1,15 @@
 package state_machines
 
 import (
+	"database/sql"
 	b64 "encoding/base64"
 	"errors"
 	"gateway/config"
 	"gateway/data_access"
-	"gateway/message_handler/gateway_verifier/message_applier"
-	"gateway/message_handler/gateway_verifier/message_creator"
-	"gateway/message_handler/gateway_verifier/message_parser"
+	"gateway/message_handler"
+	"gateway/message_handler/key_distribution"
 	"gateway/network"
+	"go.uber.org/zap"
 )
 
 type BoostrapKeyStateMachine struct {
@@ -20,6 +21,7 @@ type BoostrapKeyStateMachine struct {
 	ReverseStatesMap  map[*State]*State //includes a state as value and previous state as key
 	Transition        func() error
 	bootstrapFsmDA    *data_access.BootstrapFsmDA
+	db                *sql.DB
 }
 
 func (sm *BoostrapKeyStateMachine) GetCurrentState() State {
@@ -101,14 +103,16 @@ func (sm *BoostrapKeyStateMachine) Transit() error {
 func (sm *BoostrapKeyStateMachine) SetIsTraversalMode(isTraversalMode bool) {
 	sm.IsTraversalMode = isTraversalMode
 }
-func GenerateBootstrapStateMachine(requestId int64) BoostrapKeyStateMachine {
+func GenerateBootstrapStateMachine(requestId int64, databse *sql.DB) BoostrapKeyStateMachine {
 
+	zap.L().Info("Generating bootstrap state machine")
 	sm := BoostrapKeyStateMachine{}
+	sm.db = databse
 	sm.ReverseStatesMap = make(map[*State]*State)
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewBootstrapFsmDA()
 	cacheHandler := data_access.NewCacheHandlerDA()
-	var vDa = data_access.VerifierDA{}
+	var vDa = data_access.GenerateVerifierDA(databse)
 
 	cfg, err := config.ReadYaml()
 	if err != nil {
@@ -133,9 +137,9 @@ func GenerateBootstrapStateMachine(requestId int64) BoostrapKeyStateMachine {
 		Action: func(T any) error {
 			//here T contains request Id
 
-			msgBytes := message_creator.CreateGatewayVerifierKeyDistributionMessage(cfg, sm.RequestId)
+			msgBytes := key_distribution.CreateGatewayVerifierKeyDistributionMessage(cfg, sm.RequestId, sm.db)
 			if msgBytes == nil {
-
+				zap.L().Error("Error in generating key distribution message ", zap.Error(err))
 				return errors.New("Error in generating message")
 			}
 			cacheHandler.SetRequestInformation(sm.RequestId, "generatedMsg", b64.StdEncoding.EncodeToString(msgBytes))
@@ -151,6 +155,7 @@ func GenerateBootstrapStateMachine(requestId int64) BoostrapKeyStateMachine {
 		Action: func(T any) error {
 			bootstrapVerifier, err := vDa.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
 			if err != nil {
+				zap.L().Error("Error in getting verifier from database", zap.Error(err))
 				return err
 			}
 			data, err := cacheHandler.GetRequestInformation(sm.RequestId, "generatedMsg")
@@ -161,12 +166,14 @@ func GenerateBootstrapStateMachine(requestId int64) BoostrapKeyStateMachine {
 				}
 				responseBytes, err := network.SendAndAwaitReplyToVerifier(bootstrapVerifier, msgBytes)
 				if err != nil {
+					zap.L().Error("Error in sending message to verifier", zap.Error(err))
 					return err
 				}
 				cacheHandler.SetRequestInformation(sm.RequestId, "responseMsg", b64.StdEncoding.EncodeToString(responseBytes))
 				return nil
 			} else {
 				sm.IsTraversalMode = false
+				zap.L().Error("Error in sending message to verifier", zap.Error(err))
 				return errors.New("Error in sending message to verifier")
 			}
 		},
@@ -184,17 +191,20 @@ func GenerateBootstrapStateMachine(requestId int64) BoostrapKeyStateMachine {
 				if err != nil {
 					return err
 				}
-				msgData, err := message_parser.ParseGatewayVerifierResponse(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
+				msgData, err := message_handler.ParseGatewayVerifierResponse(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
 				if err != nil {
+					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
 				}
-				err = message_applier.ApplyGatewayVerifierKeyDistributionResponse(msgData)
+				err = key_distribution.ApplyGatewayVerifierKeyDistributionResponse(msgData, sm.db)
 				if err != nil {
+					zap.L().Error("Error in applying response from verifier", zap.Error(err))
 					return err
 				}
 				return nil
 			} else {
 				sm.IsTraversalMode = false
+
 				return errors.New("Error in parsing and applying response")
 			}
 			return nil

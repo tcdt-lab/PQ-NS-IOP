@@ -1,64 +1,44 @@
 package data_access
 
-import "gateway/data"
+import (
+	"database/sql"
+	"gateway/data"
+)
 
 type GatewayUserDA struct {
+	db *sql.DB
+}
+
+func GenerateGatewayUserDA(db *sql.DB) *GatewayUserDA {
+	return &GatewayUserDA{
+		db: db,
+	}
 }
 
 func (gul *GatewayUserDA) GetGatewayUsers() ([]data.GatewayUser, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return nil, err
-	}
-	return data.GetAllGatewayUsers(db)
+	return data.GetAllGatewayUsers(gul.db)
 }
 
 func (gul *GatewayUserDA) AddGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.AddNewGatewayUser(db, gatewayUser)
+	return data.AddNewGatewayUser(gul.db, gatewayUser)
 }
 
 func (gul *GatewayUserDA) UpdateGatewayUser(gatewayUser data.GatewayUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateGatewayUser(db, gatewayUser)
+	return data.UpdateGatewayUser(gul.db, gatewayUser)
 }
 
 func (gul *GatewayUserDA) RemoveGatewayUser(id int) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.DeleteGatewayUser(db, id)
+	return data.DeleteGatewayUser(gul.db, id)
 }
 
-func (gul *GatewayUserDA) GetGatewayUser(id int) (data.GatewayUser, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.GatewayUser{}, err
-	}
-	return data.GetGatewayUser(db, id)
+func (gul *GatewayUserDA) GetGatewayUser(id int64) (data.GatewayUser, error) {
+	return data.GetGatewayUser(gul.db, id)
 }
 
 func (gul *GatewayUserDA) GetGatewayUserByPublicKeyDsa(pubklicKeyDSA string) (data.GatewayUser, error) {
-
-	db, err := getDbConnection()
-	if err != nil {
-		return data.GatewayUser{}, err
-	}
-	return data.GetGatewayUserByPublicKeyDsa(db, pubklicKeyDSA)
+	return data.GetGatewayUserByPublicKeyDsa(gul.db, pubklicKeyDSA)
 }
 
 func (gul *GatewayUserDA) GetGatewayUserByPublicKeyKem(pubklicKeyKEM string) (data.GatewayUser, error) {
-
-	db, err := getDbConnection()
-	if err != nil {
-		return data.GatewayUser{}, err
-	}
-	return data.GetGatewayUserByPublicKeyKem(db, pubklicKeyKEM)
+	return data.GetGatewayUserByPublicKeyKem(gul.db, pubklicKeyKEM)
 }

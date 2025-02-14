@@ -1,89 +1,69 @@
 package data_access
 
 import (
+	"database/sql"
 	"gateway/data"
 )
 
 type GatewayDA struct {
+	db *sql.DB
 }
 
-func (gl *GatewayDA) GetGateways() ([]data.Gateway, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return nil, err
+func GenerateGatewayDA(db *sql.DB) *GatewayDA {
+	return &GatewayDA{
+		db: db,
 	}
-	return data.GetGateways(db)
+}
+func (gl *GatewayDA) GetGateways() ([]data.Gateway, error) {
+
+	return data.GetGateways(gl.db)
 }
 
 func (gl *GatewayDA) AddGateway(gateway data.Gateway) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.AddGateway(db, gateway)
+
+	return data.AddGateway(gl.db, gateway)
 }
 
 func (gl *GatewayDA) UpdateGateway(gateway data.Gateway) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateGateway(db, gateway)
+
+	return data.UpdateGateway(gl.db, gateway)
 }
 
 func (gl *GatewayDA) RemoveGateway(id int) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.RemoveGateway(db, id)
+
+	return data.RemoveGateway(gl.db, id)
 }
 
 func (gl *GatewayDA) GetGateway(id int) (data.Gateway, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Gateway{}, err
-	}
-	return data.GetGateway(db, id)
+
+	return data.GetGateway(gl.db, id)
 }
 
 func (gl *GatewayDA) GetGatewayByIpAndPort(ip string, port string) (data.Gateway, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Gateway{}, err
-	}
-	return data.GetGatewayByIpAndPort(db, ip, port)
+
+	return data.GetGatewayByIpAndPort(gl.db, ip, port)
 }
 
 func (gl *GatewayDA) GetGatewayByIP(ip string) (data.Gateway, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Gateway{}, err
-	}
-	return data.GetGatewayByIP(db, ip)
+
+	return data.GetGatewayByIP(gl.db, ip)
 }
 
 func (gl *GatewayDA) IfGatewayExist(gateway data.Gateway) (bool, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return false, err
-	}
-	return data.IfGatewayExist(db, gateway)
+
+	return data.IfGatewayExist(gl.db, gateway)
 }
 
 func (gl *GatewayDA) AddUpdateGateways(gateways []data.Gateway) error {
-	db, err := getDbConnection()
-	if err != nil {
-		return err
-	}
+
 	for _, gateway := range gateways {
-		if exist, _ := data.IfGatewayExist(db, gateway); exist {
-			_, err = data.UpdateGateway(db, gateway)
+		if exist, _ := data.IfGatewayExist(gl.db, gateway); exist {
+			_, err := data.UpdateGateway(gl.db, gateway)
 			if err != nil {
 				return err
 			}
 		} else {
-			_, err = data.AddGateway(db, gateway)
+			_, err := data.AddGateway(gl.db, gateway)
 			if err != nil {
 				return err
 			}

@@ -1,4 +1,4 @@
-package message_applier
+package key_distribution
 
 import (
 	b64 "encoding/base64"

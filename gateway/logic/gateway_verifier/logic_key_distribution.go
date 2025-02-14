@@ -3,9 +3,8 @@ package gateway_verifier
 import (
 	"gateway/config"
 	"gateway/data_access"
-	"gateway/message_handler/gateway_verifier/message_applier"
-	"gateway/message_handler/gateway_verifier/message_creator"
-	"gateway/message_handler/gateway_verifier/message_parser"
+	"gateway/message_handler"
+	"gateway/message_handler/key_distribution"
 	"gateway/network"
 )
 
@@ -21,11 +20,11 @@ func KeyDistributionLogicApply() error {
 	if err != nil {
 		return err
 	}
-	msgData, err := message_parser.ParseGatewayVerifierResponse(responseBytes, bootstrapVerifier.Ip, bootstrapVerifier.Port)
+	msgData, err := message_handler.ParseGatewayVerifierResponse(responseBytes, bootstrapVerifier.Ip, bootstrapVerifier.Port)
 	if err != nil {
 		return err
 	}
-	err = message_applier.ApplyGatewayVerifierKeyDistributionResponse(msgData)
+	err = message_creator.ApplyGatewayVerifierKeyDistributionResponse(msgData)
 	if err != nil {
 		return err
 	}

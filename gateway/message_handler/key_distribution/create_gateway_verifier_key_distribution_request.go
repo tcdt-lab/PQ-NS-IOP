@@ -1,8 +1,8 @@
-package message_creator
+package key_distribution
 
 import (
+	"database/sql"
 	b64 "encoding/base64"
-	"fmt"
 	"gateway/config"
 	"gateway/data_access"
 	"go.uber.org/zap"
@@ -12,19 +12,19 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int64) []byte {
+func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int64, db *sql.DB) []byte {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
-	guDa := data_access.GatewayUserDA{}
+	guDa := data_access.GenerateGatewayUserDA(db)
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var nonce string
 	cachHandler := data_access.NewCacheHandlerDA()
 	adminId, err := cachHandler.GetUserAdminId()
 	currentUSer, err := guDa.GetGatewayUser(adminId)
 	if err != nil {
-		fmt.Println(err)
-		zap.L().Error("Error while getting current gateway user", zap.Error(err))
+
+		zap.L().Error("Error while getting current gateway user", zap.Error(err), zap.Any("db", &db))
 		return nil
 	}
 	// Get current gateway user

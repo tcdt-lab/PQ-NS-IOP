@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"gateway/config"
 	"gateway/data_access"
@@ -22,12 +23,12 @@ func main() {
 	defer logger.Sync()
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
-
+	db, _ := getDbConnection()
 	//Init Steps
 	//1.Generate DSA and KEM KEYS and Save Admin and Bootstrap Verifier data
-	BootLogic(c)
+	BootLogic(c, db)
 	//2. phase one of the protocol
-	PhaseOneExecute()
+	PhaseOneExecute(db)
 
 	//3. phase two of the protocol
 
@@ -38,8 +39,8 @@ func main() {
 
 }
 
-func BootLogic(c *config.Config) {
-	bootstrapId, adminId, err := logic.InintStepLogic(c)
+func BootLogic(c *config.Config, db *sql.DB) {
+	bootstrapId, adminId, err := logic.InintStepLogic(c, db)
 	if err != nil {
 		fmt.Print(err)
 		zap.L().Error("Error while generating keys", zap.Error(err))
@@ -47,17 +48,32 @@ func BootLogic(c *config.Config) {
 	}
 	zap.L().Info("BootstrapId and AdminId", zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", adminId))
 	cacheHandler := data_access.NewCacheHandlerDA()
-	cacheHandler.SetBootstrapVerifierId(int(bootstrapId))
-	cacheHandler.SetUserAdminId(int(adminId))
+	cacheHandler.SetBootstrapVerifierId(bootstrapId)
+	cacheHandler.SetUserAdminId(adminId)
 }
 
-func PhaseOneExecute() {
+func PhaseOneExecute(db *sql.DB) {
 	reqNum, err := util.GenerateRequestNumber()
 	if err != nil {
 		zap.L().Error("Error while generating request number", zap.Error(err))
 		os.Exit(1)
 	}
 
-	boostrapKeyStateMachine := state_machines.GenerateBootstrapStateMachine(reqNum)
+	boostrapKeyStateMachine := state_machines.GenerateBootstrapStateMachine(reqNum, db)
 	boostrapKeyStateMachine.Transit()
+}
+
+func getConfig() (config.Config, error) {
+	cfg, err := config.ReadYaml()
+	return *cfg, err
+}
+
+func getDbConnection() (*sql.DB, error) {
+	c, err := getConfig()
+	db, err := sql.Open("mysql", c.DB.Username+":"+c.DB.Password+"@/"+c.DB.Name)
+	db.SetMaxOpenConns(1000)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }

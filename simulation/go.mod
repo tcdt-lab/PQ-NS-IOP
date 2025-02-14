@@ -5,11 +5,17 @@ go 1.23.2
 require test.org/verifier v0.0.0-00010101000000-000000000000
 
 require (
+	github.com/xuri/excelize/v2 v2.9.0
+	test.org/gateway v0.0.0-00010101000000-000000000000
+)
+
+require (
+	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/xuri/efp v0.0.0-20240408161823-9ad904a10d6d // indirect
-	github.com/xuri/excelize/v2 v2.9.0 // indirect
 	github.com/xuri/nfp v0.0.0-20240318013403-ab9948c2c4a7 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
@@ -19,6 +25,8 @@ require (
 )
 
 replace test.org/verifier => /home/koosha/Desktop/PQ-NS-IOP/verifier
+
+replace test.org/gateway => /home/koosha/Desktop/PQ-NS-IOP/gateway
 
 replace test.org/protocol => /home/koosha/Desktop/PQ-NS-IOP/protocol
 

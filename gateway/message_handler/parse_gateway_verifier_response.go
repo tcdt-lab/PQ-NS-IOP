@@ -1,6 +1,7 @@
-package message_parser
+package message_handler
 
 import (
+	"database/sql"
 	"errors"
 	"gateway/config"
 	"gateway/data_access"
@@ -9,7 +10,7 @@ import (
 	"test.org/protocol/pkg"
 )
 
-func ParseGatewayVerifierResponse(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
+func ParseGatewayVerifierResponse(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
@@ -25,7 +26,7 @@ func ParseGatewayVerifierResponse(msgBytes []byte, senderIp string, senderPort s
 	}
 
 	msgData := pkg.MessageData{}
-	vDA := data_access.VerifierDA{}
+	vDA := data_access.GenerateVerifierDA(db)
 	senderVerfier, err := vDA.GetVerifierByIpAndPort(senderIp, senderPort)
 	if err != nil {
 		zap.L().Error("Error while getting verifier", zap.Error(err))

@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type VerifierUser struct {
@@ -25,7 +24,7 @@ func AddVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
 }
 
 func UpdateVerifierUser(v *VerifierUser, db *sql.DB) (int64, error) {
-	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE id=?", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.SymmetricKey, v.PublicKeyKem, v.Id)
+	rowChange, err := db.Exec("UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE id=?", v.Salt, v.Password, v.SecretKeySig, v.PublicKeySig, v.SecretKeyKem, v.PublicKeyKem, v.SymmetricKey, v.Id)
 	if err != nil {
 		return 0, err
 	}
@@ -82,13 +81,14 @@ func GetVerifierUserByPublicKeySig(db *sql.DB, publicKeySig string) (VerifierUse
 
 func GetVerifierUserByPassword(db *sql.DB, password string) (VerifierUser, error) {
 	var v VerifierUser
-	err := db.QueryRow("SELECT * FROM verifier_user WHERE password = ?", password).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem)
+	err := db.QueryRow("SELECT * FROM verifier_user WHERE password = ?", password).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem, &v.SymmetricKey)
 	return v, err
 }
 func GetVerifierUserById(db *sql.DB, id int64) (VerifierUser, error) {
 	var v VerifierUser
 	err := db.QueryRow("SELECT * FROM verifier_user WHERE id = ?", id).Scan(&v.Id, &v.Salt, &v.Password, &v.SecretKeySig, &v.PublicKeySig, &v.SecretKeyKem, &v.PublicKeyKem, &v.SymmetricKey)
-	fmt.Print(err)
+
+	//fmt.Print(err)
 	return v, err
 }
 

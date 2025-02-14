@@ -1,6 +1,7 @@
-package message_parser
+package message_handler
 
 import (
+	"database/sql"
 	"errors"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg"
@@ -9,7 +10,7 @@ import (
 	"verifier/message_handler/util"
 )
 
-func ParseRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.MessageData, error) {
+func ParseRequest(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageData, error) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
@@ -25,13 +26,13 @@ func ParseRequest(msgBytes []byte, senderIp string, senderPort string) (pkg.Mess
 	}
 
 	msgData := pkg.MessageData{}
-	gDA := data_access.GenerateGatewayDA()
-	defer gDA.CloseGatewayDaConnection()
+	gDA := data_access.GenerateGatewayDA(db)
+
 	gatewayExists, err := gDA.IfGatewayExist(senderIp, senderPort)
 	if gatewayExists {
 		sourceGateway, err := gDA.GetGatewayByIpAndPort(senderIp, senderPort)
 		if err != nil {
-			zap.L().Error("Error while getting verifier", zap.Error(err))
+			zap.L().Error("Error while getting gateway", zap.Error(err))
 			return pkg.MessageData{}, err
 		}
 		if message.IsEncrypted {

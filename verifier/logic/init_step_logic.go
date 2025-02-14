@@ -1,24 +1,26 @@
 package logic
 
 import (
+	"database/sql"
 	b64 "encoding/base64"
 	"os"
 	"verifier/config"
 	"verifier/data"
 	"verifier/data_access"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 )
 
-func InitStepLogic() (int64, int64, error) {
+func InitStepLogic(db *sql.DB) (int64, int64, error) {
 	//Here we create a new Instance of verfiifer user and build keys for it
 	c, err := config.ReadYaml()
 	if err != nil {
 		panic(err)
 	}
 	var verfierUser = data.VerifierUser{}
-	var verifierUserDataAccess = data_access.VerifierUserDA{}
+	var verifierUserDataAccess = data_access.GenerateVerifierUserDA(db)
+
 	var bootstrapVerfier = data.Verifier{}
-	var verifierDataAccess = data_access.VerifierDA{}
+	var verifierDataAccess = data_access.GenerateVerifierDA(db)
 	protoUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	secKeyKem, pubKeyKem, err := protoUtil.AsymmetricHandler.KEMKeyGen(c.Security.KEMScheme)
 	if err != nil {

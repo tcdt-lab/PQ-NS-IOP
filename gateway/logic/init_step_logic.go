@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"gateway/config"
 	"gateway/data"
@@ -10,9 +11,10 @@ import (
 	"test.org/cryptography/pkg/asymmetric"
 )
 
-func InintStepLogic(cfg *config.Config) (int64, int64, error) {
+func InintStepLogic(cfg *config.Config, db *sql.DB) (int64, int64, error) {
 
 	admin := data.GatewayUser{}
+	cacheHAndler := data_access.NewCacheHandlerDA()
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	salt, err := pkgUtil.PBKDF2Handler.GeneratingSalt(32)
 	if err != nil {
@@ -20,7 +22,7 @@ func InintStepLogic(cfg *config.Config) (int64, int64, error) {
 		return 0, 0, err
 	}
 
-	vDa := data_access.VerifierDA{}
+	vDa := data_access.GenerateVerifierDA(db)
 	verifier := data.Verifier{}
 	verifier.PublicKey = cfg.BootstrapNode.PubKeySig
 	verifier.Ip = cfg.BootstrapNode.Ip
@@ -28,8 +30,9 @@ func InintStepLogic(cfg *config.Config) (int64, int64, error) {
 
 	bootstrapExists, err := vDa.IfVerifierExistsByIpandPort(verifier)
 	if bootstrapExists {
-		zap.L().Info("Bootstrap verifier already exists")
-		return 0, 0, nil
+		adminId, _ := cacheHAndler.GetUserAdminId()
+		bootstrapId, _ := cacheHAndler.GetBootstrapVerifierId()
+		return bootstrapId, adminId, nil
 	}
 
 	asymHandler := asymmetric.NewAsymmetricHandler(cfg.Security.CryptographyScheme)
@@ -53,6 +56,8 @@ func InintStepLogic(cfg *config.Config) (int64, int64, error) {
 		zap.L().Error("Error while initializing gateway", zap.Error(err))
 		return 0, 0, err
 	}
+	cacheHAndler.SetBootstrapVerifierId(bootstrapId)
+	cacheHAndler.SetUserAdminId(gatewayId)
 
 	return bootstrapId, gatewayId, nil
 }

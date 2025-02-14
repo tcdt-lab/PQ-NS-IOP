@@ -7,12 +7,14 @@ import (
 	"verifier/data_access"
 	"verifier/logic"
 	"verifier/network"
+	"verifier/utility"
 )
 
 const PASSWORD = "password"
 
 func main() {
 	config, err := config.ReadYaml()
+	db, err := utility.GetDBConnection(*config)
 	if err != nil {
 		panic(err)
 	}
@@ -25,7 +27,7 @@ func main() {
 	defer logger.Sync()
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
-	adminId, bootstrapId, err := logic.InitStepLogic()
+	adminId, bootstrapId, err := logic.InitStepLogic(db)
 	if err != nil {
 		zap.L().Error("Error while generating keys", zap.Error(err))
 		os.Exit(1)
@@ -33,5 +35,10 @@ func main() {
 	cacheHandler := data_access.NewCacheHandlerDA()
 	cacheHandler.SetUserAdminId(adminId)
 	cacheHandler.SetBootstrapVerifierId(bootstrapId)
-	network.StartServer(config)
+
+	if err != nil {
+		zap.L().Error("Error while getting db connection", zap.Error(err))
+		os.Exit(1)
+	}
+	network.StartServer(config, db)
 }

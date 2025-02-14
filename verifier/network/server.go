@@ -2,16 +2,16 @@ package network
 
 import (
 	"bytes"
-	"encoding/hex"
+	"database/sql"
 	"go.uber.org/zap"
 	"io"
 	"log"
 	"net"
 	"verifier/config"
-	"verifier/message_parser"
+	"verifier/message_handler"
 )
 
-func StartServer(config *config.Config) {
+func StartServer(config *config.Config, db *sql.DB) {
 	// Start the server
 	zap.L().Info("Starting server")
 	listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
@@ -24,11 +24,11 @@ func StartServer(config *config.Config) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go handleConnection(conn, config)
+		go handleConnection(conn, config, db)
 	}
 }
 
-func handleConnection(conn net.Conn, config *config.Config) {
+func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
 	// Handle the connection
 	defer conn.Close()
 	var buffer bytes.Buffer
@@ -53,9 +53,8 @@ func handleConnection(conn net.Conn, config *config.Config) {
 		}
 
 	}
-	zap.L().Info("Received data: ", zap.String("data", hex.EncodeToString(buffer.Bytes())))
 
-	var messageParser = message_parser.MessageHandler{}
+	var messageParser = message_handler.GenerateNewMessageHandler(db)
 	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
 	if err != nil {
 		zap.L().Error("Error parsing message: ", zap.Error(err))

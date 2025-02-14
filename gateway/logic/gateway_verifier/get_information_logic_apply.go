@@ -3,9 +3,9 @@ package gateway_verifier
 import (
 	"gateway/config"
 	"gateway/data_access"
+	"gateway/message_handler"
 	"gateway/message_handler/gateway_verifier/message_applier"
 	"gateway/message_handler/gateway_verifier/message_creator"
-	"gateway/message_handler/gateway_verifier/message_parser"
 	"gateway/network"
 )
 
@@ -24,7 +24,7 @@ func GetInformationLogicApply() error {
 	if err != nil {
 		return err
 	}
-	msgdata, err := message_parser.ParseGatewayVerifierResponse(res, bootstrapVerifier.Ip, bootstrapVerifier.Port)
+	msgdata, err := message_handler.ParseGatewayVerifierResponse(res, bootstrapVerifier.Ip, bootstrapVerifier.Port)
 	if err != nil {
 		return err
 	}

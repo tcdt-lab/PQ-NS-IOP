@@ -2,9 +2,7 @@ package network
 
 import (
 	"bytes"
-	"fmt"
 	"gateway/data"
-	"go.uber.org/zap"
 	"io"
 	"net"
 )
@@ -93,8 +91,8 @@ func SendAndAwaitReplyToVerifier(verifier data.Verifier, msg []byte) ([]byte, er
 		}
 
 	}
-	zap.L().Info("Response from verifier", zap.ByteString("response", response.Bytes()))
-	fmt.Println("Response from verifier", response.Bytes())
+	//zap.L().Info("Response from verifier", zap.ByteString("response", response.Bytes()))
+	//fmt.Println("Response from verifier", response.Bytes())
 
 	return response.Bytes(), nil
 }

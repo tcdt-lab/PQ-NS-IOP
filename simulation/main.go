@@ -1,7 +1,15 @@
 package main
 
-import "simulation/trust"
+import (
+	"go.uber.org/zap"
+	"simulation/key_distribution"
+)
 
 func main() {
-	trust.SimulateTrustScoreCalculation()
+	logger := zap.NewExample()
+	defer logger.Sync()
+	undo := zap.ReplaceGlobals(logger)
+	defer undo()
+	//trust.SimulateTrustScoreCalculation()
+	key_distribution.KeyDistibutionSequencial()
 }

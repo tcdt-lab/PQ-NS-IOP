@@ -1,94 +1,72 @@
 package data_access
 
 import (
+	"database/sql"
+	"go.uber.org/zap"
 	"verifier/data"
 )
 
 type VerifierUserDA struct {
+	db *sql.DB
 }
 
+func GenerateVerifierUserDA(databse *sql.DB) VerifierUserDA {
+	var vDa = VerifierUserDA{db: databse}
+	return vDa
+}
+func (vuda *VerifierUserDA) CloseDbConnection() {
+	vuda.db.Close()
+}
 func (vuda *VerifierUserDA) GetVerifierUsers() ([]data.VerifierUser, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return nil, err
-	}
-	return data.GetAllVerifierUsers(db)
+
+	return data.GetAllVerifierUsers(vuda.db)
 }
 
 func (vuda *VerifierUserDA) AddVerifierUser(vu data.VerifierUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.AddVerifierUser(&vu, db)
+
+	return data.AddVerifierUser(&vu, vuda.db)
 }
 
 func (vuda *VerifierUserDA) UpdateVerifierUser(vu data.VerifierUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateVerifierUser(&vu, db)
+
+	return data.UpdateVerifierUser(&vu, vuda.db)
 }
 
 func (vuda *VerifierUserDA) UpdateVerifierUserByPassword(vu data.VerifierUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateVerifeirUserByPassword(&vu, db)
+
+	return data.UpdateVerifeirUserByPassword(&vu, vuda.db)
 }
 
 func (vuda *VerifierUserDA) UpdateVerifierUserByPublicKeySig(vu data.VerifierUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateVerifierUSerByPublicKeySig(&vu, db)
+
+	return data.UpdateVerifierUSerByPublicKeySig(&vu, vuda.db)
 }
 
 func (vuda *VerifierUserDA) DeleteVerifierUser(id int) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.DeleteVerifierUser(db, id)
+
+	return data.DeleteVerifierUser(vuda.db, id)
 }
 
-func (vuda *VerifierUserDA) GetVerifierUser(id int) (data.VerifierUser, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.VerifierUser{}, err
-	}
-	return data.GetVerifierUserById(db, int64(id))
+func (vuda *VerifierUserDA) GetVerifierUser(id int64) (data.VerifierUser, error) {
+
+	return data.GetVerifierUserById(vuda.db, int64(id))
 }
 
 func (vuda *VerifierUserDA) GetVerifierUserByPublicKeySig(publicKeySig string) (data.VerifierUser, error) {
 
-	db, err := getDbConnection()
-	if err != nil {
-		return data.VerifierUser{}, err
-	}
-	return data.GetVerifierUserByPublicKeySig(db, publicKeySig)
+	return data.GetVerifierUserByPublicKeySig(vuda.db, publicKeySig)
 }
 
 func (vuda *VerifierUserDA) GetVerifierUserByPassword(password string) (data.VerifierUser, error) {
 
-	db, err := getDbConnection()
-	if err != nil {
-		return data.VerifierUser{}, err
-	}
-	return data.GetVerifierUserByPassword(db, password)
+	return data.GetVerifierUserByPassword(vuda.db, password)
 }
 func (vuda *VerifierUserDA) AddUpdateVerifierUSer(vu data.VerifierUser) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	if exist, _ := data.IsVerifierUserExist(db, 1); exist {
-		return data.UpdateVerifierUser(&vu, db)
+
+	if exist, _ := data.IsVerifierUserExist(vuda.db, 1); exist {
+		return data.UpdateVerifierUser(&vu, vuda.db)
 	} else {
-		return data.AddVerifierUser(&vu, db)
+		return data.AddVerifierUser(&vu, vuda.db)
 	}
 }
 func (vuda *VerifierUserDA) SetUpAdminVerifierUser(publicKeyKem string, secKeyKem string, pubKeySig string, secKeySig string) (int64, error) {
@@ -103,11 +81,11 @@ func (vuda *VerifierUserDA) SetUpAdminVerifierUser(publicKeyKem string, secKeyKe
 
 func (vuda *VerifierUserDA) GetAdminVerifierUser() (data.VerifierUser, error) {
 
-	db, err := getDbConnection()
-	if err != nil {
-		return data.VerifierUser{}, err
-	}
 	cacheHandler := NewCacheHandlerDA()
 	adminId, err := cacheHandler.GetUserAdminId()
-	return data.GetVerifierUserById(db, adminId)
+	if err != nil {
+		zap.L().Error("Error while getting admin id", zap.Error(err))
+		return data.VerifierUser{}, err
+	}
+	return data.GetVerifierUserById(vuda.db, adminId)
 }

@@ -1,6 +1,7 @@
-package message_applier
+package key_distribution
 
 import (
+	"database/sql"
 	"gateway/config"
 	"gateway/data_access"
 	"gateway/message_handler/util"
@@ -9,13 +10,13 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData) error {
+func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData, db *sql.DB) error {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return err
 	}
-	gul := data_access.GatewayUserDA{}
-	vl := data_access.VerifierDA{}
+	gul := data_access.GenerateGatewayUserDA(db)
+	vl := data_access.GenerateVerifierDA(db)
 	gtUser, err := gul.GetGatewayUser(1)
 	if err != nil {
 		zap.L().Error("Error while getting gateway user", zap.Error(err))

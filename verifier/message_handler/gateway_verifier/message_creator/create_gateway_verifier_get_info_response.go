@@ -1,14 +1,15 @@
 package message_creator
 
 import (
+	"database/sql"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/config"
 	"verifier/data_access"
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 )
 
-func CreateGateVerifierGetInfoResponse() ([]byte, error) {
+func CreateGateVerifierGetInfoResponse(db *sql.DB) ([]byte, error) {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return nil, err
@@ -16,8 +17,8 @@ func CreateGateVerifierGetInfoResponse() ([]byte, error) {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
-	vuda := data_access.GenerateVerifierUserDA()
-	defer vuda.CloseDbConnection()
+	vuda := data_access.GenerateVerifierUserDA(db)
+
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	gvGetInfoResponse := gateway_verifier.GatewayVerifierInitInfoOperationResponse{}
 	gvVerifier := []gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}
@@ -27,13 +28,13 @@ func CreateGateVerifierGetInfoResponse() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	gvGateways, err = fillGateways(gvGateways)
+	gvGateways, err = fillGateways(gvGateways, db)
 	if err != nil {
 		return nil, err
 	}
 	gvGetInfoResponse.GatewaysList = gvGateways
 
-	gvVerifier, err = fillVerifiers(gvVerifier)
+	gvVerifier, err = fillVerifiers(gvVerifier, db)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +60,9 @@ func CreateGateVerifierGetInfoResponse() ([]byte, error) {
 	return msgBytes, nil
 }
 
-func fillGateways(gatewaysStruct []gateway_verifier.GatewayVerifierInitInfoStructureGateway) ([]gateway_verifier.GatewayVerifierInitInfoStructureGateway, error) {
-	gDA := data_access.GenerateGatewayDA()
-	defer gDA.CloseGatewayDaConnection()
+func fillGateways(gatewaysStruct []gateway_verifier.GatewayVerifierInitInfoStructureGateway, db *sql.DB) ([]gateway_verifier.GatewayVerifierInitInfoStructureGateway, error) {
+	gDA := data_access.GenerateGatewayDA(db)
+
 	allGateways, err := gDA.GetGateways()
 
 	for _, gateway := range allGateways {
@@ -77,8 +78,8 @@ func fillGateways(gatewaysStruct []gateway_verifier.GatewayVerifierInitInfoStruc
 	return gatewaysStruct, err
 }
 
-func fillVerifiers(verifiersStruct []gateway_verifier.GatewayVerifierInitInfoStructureVerifier) ([]gateway_verifier.GatewayVerifierInitInfoStructureVerifier, error) {
-	vDA := data_access.VerifierDA{}
+func fillVerifiers(verifiersStruct []gateway_verifier.GatewayVerifierInitInfoStructureVerifier, db *sql.DB) ([]gateway_verifier.GatewayVerifierInitInfoStructureVerifier, error) {
+	vDA := data_access.GenerateVerifierDA(db)
 	allVerifiers, err := vDA.GetVerifiers()
 
 	for _, verifier := range allVerifiers {

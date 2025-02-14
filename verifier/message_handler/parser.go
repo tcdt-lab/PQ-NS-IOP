@@ -1,4 +1,4 @@
-package message_parser
+package message_handler
 
 import (
 	"database/sql"
@@ -6,60 +6,69 @@ import (
 	"errors"
 	"go.uber.org/zap"
 	"os"
+	"strconv"
 	"test.org/protocol/pkg"
-	"verifier/logic"
-	"verifier/message_parser/gateway_verifier/message_parser"
-	"verifier/utility"
+	"verifier/message_handler/gateway_verifier/message_creator"
+	"verifier/message_handler/key_distribution"
 
-	"verifier/message_parser/util"
+	"verifier/message_handler/util"
 
 	"verifier/config"
 	"verifier/data"
 )
 
 type MessageHandler struct {
+	db *sql.DB
+}
+
+func GenerateNewMessageHandler(database *sql.DB) MessageHandler {
+	var msgHandler = MessageHandler{db: database}
+	return msgHandler
 }
 
 func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, senderPort string, c config.Config) ([]byte, error) {
+
+	zap.L().Info("handleing a request")
 	var response []byte
 	cfg, err := config.ReadYaml()
-	responseLogic := logic.ResponseLogic{}
 
 	if err != nil {
 		return nil, err
 	}
-	db, err := utility.GetDBConnection(c)
-	defer db.Close()
+
 	if err != nil {
 		return nil, err
 	}
-	msgData, err := message_parser.ParseRequest(message, senderIp, senderPort)
+	msgData, err := ParseRequest(message, senderIp, senderPort, mp.db)
 	if err != nil {
-		return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
+		zap.L().Error("Error while parsing request", zap.Error(err))
+		return mp.GenerateGeneralErrorResponse(err, *cfg), err
 	}
 
 	switch msgData.MsgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
-		response, err = responseLogic.HandleKeyDistributionResponse(msgData, senderIp, senderPort)
+		zap.L().Info("Handling Key Distribution Request", zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
+		response, err = mp.HandleKeyDistributionResponse(msgData, senderIp, senderPort)
 		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
+			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
 		return response, nil
 
 	case pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_REQEST:
-		response, err = responseLogic.HandleGetInfoResponse()
+		response, err = mp.HandleGetInfoResponse()
 		if err != nil {
-			return mp.GenerateGeneralErrorResponse(err, *cfg, db), err
+			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
 		return response, nil
 	}
 
 	errOperation := errors.New("Operation type not found")
-	return mp.GenerateGeneralErrorResponse(errOperation, *cfg, db), errOperation
+	return mp.GenerateGeneralErrorResponse(errOperation, *cfg), errOperation
 }
 
 // go to util
-func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Config, db *sql.DB) []byte {
+func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Config) []byte {
+	zap.L().Error("Generating Error Response", zap.Error(err))
 	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 
 	msg := pkg.Message{}
@@ -67,7 +76,8 @@ func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Confi
 	msgInfo := pkg.MessageInfo{}
 	errorParams := pkg.ErrorParams{}
 
-	verifeirUser, err := data.GetVerifierUserByPassword(db, os.Getenv("PQ_NS_IOP_VU_PASS"))
+	verifeirUser, err := data.GetVerifierUserByPassword(mp.db, os.Getenv("PQ_NS_IOP_VU_PASS"))
+
 	if err != nil {
 		zap.L().Error("Error while getting verifier_verifier user", zap.Error(err))
 	}
@@ -86,4 +96,29 @@ func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Confi
 	msg.MsgTicket = ""
 	msgByte, err := msgUtil.ConvertMessageToByte(msg)
 	return msgByte
+}
+
+func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageData, senderIp string, senderPort string) ([]byte, error) {
+
+	cipherText, err := key_distribution.ApplyGatewayVerifierKeyDistributionRequest(msgData, mp.db)
+	if err != nil {
+		zap.L().Error("Error while applying key distribution request", zap.Error(err))
+		return nil, err
+	}
+	res, err := key_distribution.CreateGatewayVerifierKeyDistributionResponse(cipherText, mp.db)
+	if err != nil {
+		zap.L().Error("Error while creating key distribution response", zap.Error(err))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (mp *MessageHandler) HandleGetInfoResponse() ([]byte, error) {
+
+	res, err := message_creator.CreateGateVerifierGetInfoResponse(mp.db)
+	if err != nil {
+		zap.L().Error("Error while creating get info response", zap.Error(err))
+		return nil, err
+	}
+	return res, nil
 }

@@ -2,23 +2,15 @@ package tx_gateway_verifier
 
 import (
 	"context"
-	"verifier/config"
+	"database/sql"
 	"verifier/data"
-	"verifier/utility"
 )
 
-func SharedKeyAndGatewayRegistration(verifierUser data.VerifierUser, gateway data.Gateway) error {
+func SharedKeyAndGatewayRegistration(verifierUser data.VerifierUser, gateway data.Gateway, db *sql.DB) error {
 
-	cfg, err := config.ReadYaml()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if err != nil {
-		return err
-	}
-	db, err := utility.GetDBConnection(*cfg)
-	if err != nil {
-		return err
-	}
+
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -28,7 +20,7 @@ func SharedKeyAndGatewayRegistration(verifierUser data.VerifierUser, gateway dat
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, "UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE id=?", verifierUser.Salt, verifierUser.Password, verifierUser.SecretKeySig, verifierUser.PublicKeySig, verifierUser.SecretKeyKem, verifierUser.SymmetricKey, verifierUser.PublicKeyKem, verifierUser.Id)
+	_, err = tx.ExecContext(ctx, "UPDATE verifier_user SET salt=?, password=?, secret_key_sig=?, public_key_sig=?, secret_key_kem=?, public_key_kem=?,symmetric_key=?  WHERE id=?", verifierUser.Salt, verifierUser.Password, verifierUser.SecretKeySig, verifierUser.PublicKeySig, verifierUser.SecretKeyKem, verifierUser.PublicKeyKem, verifierUser.SymmetricKey, verifierUser.Id)
 	if err = tx.Commit(); err != nil {
 		return err
 	}

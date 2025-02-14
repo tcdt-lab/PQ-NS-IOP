@@ -38,7 +38,7 @@ func DeleteGatewayUser(db *sql.DB, id int) (int64, error) {
 	return result.RowsAffected()
 }
 
-func GetGatewayUser(db *sql.DB, id int) (GatewayUser, error) {
+func GetGatewayUser(db *sql.DB, id int64) (GatewayUser, error) {
 	var user GatewayUser
 	rows := db.QueryRow("SELECT * FROM gateway_user WHERE id = ?", id)
 	err := rows.Scan(&user.Id, &user.Salt, &user.Password, &user.PublicKeyDsa, &user.SecretKeyDsa, &user.PublicKeyKem, &user.SecretKeyKem, &user.Dsa_scheme, &user.Kem_scheme)

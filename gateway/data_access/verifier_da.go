@@ -1,32 +1,33 @@
 package data_access
 
-import "gateway/data"
+import (
+	"database/sql"
+	"gateway/data"
+)
 
 type VerifierDA struct {
+	db *sql.DB
+}
+
+func GenerateVerifierDA(db *sql.DB) *VerifierDA {
+	return &VerifierDA{
+		db: db,
+	}
 }
 
 func (vl *VerifierDA) GetVerifiers() ([]data.Verifier, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return nil, err
-	}
-	return data.GetVerifiers(db)
+
+	return data.GetVerifiers(vl.db)
 }
 
 func (vl *VerifierDA) AddVerifier(verifier data.Verifier) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.AddVerifier(db, verifier)
+
+	return data.AddVerifier(vl.db, verifier)
 }
 
 func (vl *VerifierDA) UpdateVerifier(verifier data.Verifier) (int64, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return 0, err
-	}
-	return data.UpdateVerifier(db, verifier)
+
+	return data.UpdateVerifier(vl.db, verifier)
 }
 
 func (vl *VerifierDA) RemoveVerifier(id int) (int64, error) {
@@ -38,56 +39,38 @@ func (vl *VerifierDA) RemoveVerifier(id int) (int64, error) {
 }
 
 func (vl *VerifierDA) GetVerifier(id int) (data.Verifier, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Verifier{}, err
-	}
-	return data.GetVerifier(db, id)
+
+	return data.GetVerifier(vl.db, id)
 }
 
 func (vl *VerifierDA) GetVerifierByIpAndPort(ip string, port string) (data.Verifier, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Verifier{}, err
-	}
-	return data.GetVerifierByIpandPort(db, ip, port)
+
+	return data.GetVerifierByIpandPort(vl.db, ip, port)
 }
 
 func (vl *VerifierDA) GetVerifierByPublicKey(publicKey string) (data.Verifier, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Verifier{}, err
-	}
-	return data.GetVerifierByPublicKey(db, publicKey)
+
+	return data.GetVerifierByPublicKey(vl.db, publicKey)
 }
 func (vl *VerifierDA) GetVerifierByIP(ip string) (data.Verifier, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return data.Verifier{}, err
-	}
-	return data.GetVerifierByIP(db, ip)
+
+	return data.GetVerifierByIP(vl.db, ip)
 }
 
 func (vl *VerifierDA) IfVerifierExistsByIpandPort(verifier data.Verifier) (bool, error) {
-	db, err := getDbConnection()
-	if err != nil {
-		return false, err
-	}
-	return data.IfVerifierExistsWithIPandPort(db, verifier)
+
+	return data.IfVerifierExistsWithIPandPort(vl.db, verifier)
 }
 
 func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
-	db, err := getDbConnection()
-	if err != nil {
-		return err
-	}
+
 	for _, v := range verifier {
-		if exist, _ := data.IfVerifierExistsWithIPandPort(db, v); exist {
-			if _, err := data.UpdateVerifier(db, v); err != nil {
+		if exist, _ := data.IfVerifierExistsWithIPandPort(vl.db, v); exist {
+			if _, err := data.UpdateVerifier(vl.db, v); err != nil {
 				return err
 			}
 		} else {
-			if _, err := data.AddVerifier(db, v); err != nil {
+			if _, err := data.AddVerifier(vl.db, v); err != nil {
 				return err
 			}
 		}

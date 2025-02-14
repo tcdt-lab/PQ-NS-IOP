@@ -1,7 +1,9 @@
-package message_applier
+package key_distribution
 
 import (
+	"database/sql"
 	b64 "encoding/base64"
+	"go.uber.org/zap"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/config"
@@ -11,16 +13,17 @@ import (
 	"verifier/message_handler/util"
 )
 
-func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData) (string, error) {
+func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData, db *sql.DB) (string, error) {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return "", err
 	}
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
-
+	vuDA := data_access.GenerateVerifierUserDA(db)
+	verifierUSer, err := vuDA.GetAdminVerifierUser()
 	gvKeyDistributionParams := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
-	cipherTextBytes, sharedKey, _ := protoUtil.AsymmetricHandler.KemGenerateSecretKey("", gvKeyDistributionParams.GatewayPublicKeyKem, "", cfg.Security.KEMScheme)
+	cipherTextBytes, sharedKey, _ := protoUtil.AsymmetricHandler.KemGenerateSecretKey(verifierUSer.SecretKeyKem, gvKeyDistributionParams.GatewayPublicKeyKem, "", cfg.Security.KEMScheme)
 	cipherTextStr := b64.StdEncoding.EncodeToString(cipherTextBytes)
 
 	gateway := data.Gateway{}
@@ -33,15 +36,14 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData) (string
 	gateway.SymmetricKey = protoUtil.AesHandler.ConvertKeyBytesToStr64(sharedKey)
 	gateway.Ticket = ""
 
-	vuDA := data_access.GenerateVerifierUserDA()
-	defer vuDA.CloseDbConnection()
-	verifierUSer, err := vuDA.GetAdminVerifierUser()
 	if err != nil {
+		zap.L().Error("Error while getting verifier user", zap.Error(err))
 		return "", err
 	}
-	verifierUSer.SecretKeyKem = gateway.SymmetricKey
-	err = tx_gateway_verifier.SharedKeyAndGatewayRegistration(verifierUSer, gateway)
+	verifierUSer.SymmetricKey = gateway.SymmetricKey
+	err = tx_gateway_verifier.SharedKeyAndGatewayRegistration(verifierUSer, gateway, db)
 	if err != nil {
+		zap.L().Error("Error while registering gateway and Shared Key", zap.Error(err))
 		return "", err
 	}
 	return cipherTextStr, nil
