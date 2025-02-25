@@ -1,4 +1,4 @@
-package message_creator
+package get_init_information
 
 import (
 	"encoding/hex"

@@ -39,7 +39,7 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 	if err != nil {
 		return nil, err
 	}
-	msgData, err := ParseRequest(message, senderIp, senderPort, mp.db)
+	msgData, senderPubKey, err := ParseRequest(message, senderIp, senderPort, mp.db)
 	if err != nil {
 		zap.L().Error("Error while parsing request", zap.Error(err))
 		return mp.GenerateGeneralErrorResponse(err, *cfg), err
@@ -47,7 +47,7 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 
 	switch msgData.MsgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
-		zap.L().Info("Handling Key Distribution Request", zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
+		zap.L().Info("Handling Key Distribution Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
 		response, err = mp.HandleKeyDistributionResponse(msgData, senderIp, senderPort)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
@@ -55,7 +55,8 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 		return response, nil
 
 	case pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_REQEST:
-		response, err = mp.HandleGetInfoResponse()
+		zap.L().Info("Handling Get Info Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
+		response, err = mp.HandleGetInfoResponse(msgData.MsgInfo.RequestId, senderPubKey)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
@@ -113,9 +114,9 @@ func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageData,
 	return res, nil
 }
 
-func (mp *MessageHandler) HandleGetInfoResponse() ([]byte, error) {
+func (mp *MessageHandler) HandleGetInfoResponse(reqId int64, senderPubKey string) ([]byte, error) {
 
-	res, err := message_creator.CreateGateVerifierGetInfoResponse(mp.db)
+	res, err := message_creator.CreateGateVerifierGetInfoResponse(senderPubKey, reqId, mp.db)
 	if err != nil {
 		zap.L().Error("Error while creating get info response", zap.Error(err))
 		return nil, err

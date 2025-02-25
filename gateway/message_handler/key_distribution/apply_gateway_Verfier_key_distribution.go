@@ -17,7 +17,9 @@ func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData, db *sq
 	}
 	gul := data_access.GenerateGatewayUserDA(db)
 	vl := data_access.GenerateVerifierDA(db)
-	gtUser, err := gul.GetGatewayUser(1)
+	cacheHandler := data_access.NewCacheHandlerDA()
+	adminId, _ := cacheHandler.GetUserAdminId()
+	gtUser, err := gul.GetGatewayUser(adminId)
 	if err != nil {
 		zap.L().Error("Error while getting gateway user", zap.Error(err))
 		return err
@@ -29,6 +31,7 @@ func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData, db *sq
 	bootstrapVerifier, err := vl.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
 
 	bootstrapVerifier.SymmetricKey = pkgUtil.AesHandler.ConvertKeyBytesToStr64(sharedKey)
+	zap.L().Info("Symmetric key is generated", zap.String("Symmetric key", bootstrapVerifier.SymmetricKey))
 	//bootstrapVerifier.PublicKey = gvKeyDistributionRes.PublicKeyKem
 	_, err = vl.UpdateVerifier(bootstrapVerifier)
 

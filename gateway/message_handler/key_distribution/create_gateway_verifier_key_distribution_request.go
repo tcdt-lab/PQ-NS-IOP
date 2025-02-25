@@ -56,12 +56,16 @@ func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int
 		zap.L().Error("Error while converting message data to byte", zap.Error(err))
 		return nil
 	}
+
 	msg.Data = b64.StdEncoding.EncodeToString(msgDataByte)
+	msg.PublicKeySig = currentUSer.PublicKeyDsa
 	msg.IsEncrypted = false
 	msgByte, err := protocolUtil.ConvertMessageToByte(msg)
 	if err != nil {
 		zap.L().Error("Error while converting message to byte", zap.Error(err))
 		return nil
 	}
+
+	zap.L().Info("Key Distribution Request Message Generated")
 	return msgByte
 }

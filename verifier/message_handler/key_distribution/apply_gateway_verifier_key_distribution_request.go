@@ -20,6 +20,7 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData, db *sql
 	}
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
+	gDA := data_access.GenerateGatewayDA(db)
 	vuDA := data_access.GenerateVerifierUserDA(db)
 	verifierUSer, err := vuDA.GetAdminVerifierUser()
 	gvKeyDistributionParams := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
@@ -40,11 +41,22 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData, db *sql
 		zap.L().Error("Error while getting verifier user", zap.Error(err))
 		return "", err
 	}
-	verifierUSer.SymmetricKey = gateway.SymmetricKey
-	err = tx_gateway_verifier.SharedKeyAndGatewayRegistration(verifierUSer, gateway, db)
-	if err != nil {
-		zap.L().Error("Error while registering gateway and Shared Key", zap.Error(err))
-		return "", err
+	//verifierUSer.SymmetricKey = gateway.SymmetricKey
+	pubKeySigExist, _ := gDA.IfGatewayExistByPublicKeySig(gateway.PublicKeySig)
+	if !pubKeySigExist {
+		err = tx_gateway_verifier.SharedKeyAndGatewayRegistration(verifierUSer, gateway, db)
+		if err != nil {
+			zap.L().Error("Error while registering gateway and Shared Key", zap.Error(err))
+			return "", err
+		}
+	} else {
+		gt, err := gDA.GetGatewayByPublicKeySig(gateway.PublicKeySig)
+		gateway.Id = gt.Id
+		err = tx_gateway_verifier.SharedKeyAndGatewayUpdate(verifierUSer, gateway, db)
+		if err != nil {
+			zap.L().Error("Error while registering gateway and Shared Key", zap.Error(err))
+			return "", err
+		}
 	}
 	return cipherTextStr, nil
 }

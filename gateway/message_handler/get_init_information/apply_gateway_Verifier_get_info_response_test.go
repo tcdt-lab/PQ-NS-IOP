@@ -1,4 +1,4 @@
-package message_applier
+package get_init_information
 
 import (
 	"gateway/config"

@@ -16,6 +16,8 @@ func (h *HMAC) GenerateMessageMac(key []byte, message []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(message)
 	generatedMac := mac.Sum(nil)
+	zap.L().Info("used key", zap.String("key", hex.EncodeToString(key)))
+	zap.L().Info("used message", zap.String("message", hex.EncodeToString(message)))
 	zap.L().Info("Generated MAC", zap.String("mac", hex.EncodeToString(generatedMac)))
 	return generatedMac, nil
 }
@@ -27,7 +29,7 @@ func (h *HMAC) VerifyMessageMac(key []byte, message []byte, messageMAC []byte) b
 	zap.L().Info("Expected MAC", zap.String("mac", string(expectedMAC)))
 	res := hmac.Equal(messageMAC, expectedMAC)
 	if !res {
-		zap.L().Error("MAC verification failed", zap.String("expectedMAC", hex.EncodeToString(expectedMAC)), zap.String("messageMAC", hex.EncodeToString(messageMAC)))
+		zap.L().Error("MAC verification failed", zap.String("expectedMAC", b64.StdEncoding.EncodeToString(expectedMAC)), zap.String("messageMAC", b64.StdEncoding.EncodeToString(messageMAC)))
 		return res
 	}
 

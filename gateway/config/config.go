@@ -12,6 +12,7 @@ type Config struct {
 	Server        Server        `yaml:"Server"`
 	User          User          `yaml:"User"`
 	BootstrapNode BootstrapNode `yaml:"Bootstrap_Node"`
+	Client        Client        `yaml:"Client"`
 	// Ensure this matches the YAML key
 }
 
@@ -36,6 +37,11 @@ type Server struct {
 	Ip         string `yaml:"ip"`
 }
 
+type Client struct {
+	Ip       string `yaml:"ip"`
+	Port     string `yaml:"port"`
+	Protocol string `yaml:"protocol"`
+}
 type User struct {
 	Password string `yaml:"password"`
 }

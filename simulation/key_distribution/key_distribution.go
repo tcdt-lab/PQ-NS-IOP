@@ -66,7 +66,7 @@ func keyDistributionPQ(db *sql.DB) float64 {
 		os.Exit(1)
 	}
 
-	boostrapKeyStateMachine := state_machines.GenerateBootstrapStateMachine(reqNum, db)
+	boostrapKeyStateMachine := state_machines.GenerateKEyDistroStateMachine(reqNum, db)
 	boostrapKeyStateMachine.Transit()
 	elapsedTime := time.Since(startTime)
 	return elapsedTime.Seconds()

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"gateway/config"
-	"gateway/data_access"
 	"gateway/logic"
 	"gateway/logic/state_machines"
 	"gateway/message_handler/util"
@@ -40,27 +39,34 @@ func main() {
 }
 
 func BootLogic(c *config.Config, db *sql.DB) {
-	bootstrapId, adminId, err := logic.InintStepLogic(c, db)
+	_, _, err := logic.InintStepLogic(c, db)
 	if err != nil {
 		fmt.Print(err)
-		zap.L().Error("Error while generating keys", zap.Error(err))
+		zap.L().Error("Error in Inint Logic Step", zap.Error(err))
 		os.Exit(1)
 	}
-	zap.L().Info("BootstrapId and AdminId", zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", adminId))
-	cacheHandler := data_access.NewCacheHandlerDA()
-	cacheHandler.SetBootstrapVerifierId(bootstrapId)
-	cacheHandler.SetUserAdminId(adminId)
 }
 
 func PhaseOneExecute(db *sql.DB) {
+	zap.L().Info("Phase One Execution Started")
 	reqNum, err := util.GenerateRequestNumber()
 	if err != nil {
 		zap.L().Error("Error while generating request number", zap.Error(err))
 		os.Exit(1)
 	}
 
-	boostrapKeyStateMachine := state_machines.GenerateBootstrapStateMachine(reqNum, db)
+	boostrapKeyStateMachine := state_machines.GenerateKEyDistroStateMachine(reqNum, db)
 	boostrapKeyStateMachine.Transit()
+
+	reqNum, err = util.GenerateRequestNumber()
+	boostrapGetInfoStateMachine := state_machines.GenerateBootstrapGentInfoStateMachine(reqNum, db)
+	boostrapGetInfoStateMachine.Transit()
+	if err != nil {
+		zap.L().Error("Error while generating request number", zap.Error(err))
+		os.Exit(1)
+	}
+	zap.L().Info("Get Info State Machine Completed")
+
 }
 
 func getConfig() (config.Config, error) {

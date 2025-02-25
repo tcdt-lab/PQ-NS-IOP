@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type BoostrapKeyStateMachine struct {
+type BoostrapKeyDistroStateMachine struct {
 	CurrentState      *State
 	StateMachineName  string
 	RequestId         int64
@@ -24,47 +24,48 @@ type BoostrapKeyStateMachine struct {
 	db                *sql.DB
 }
 
-func (sm *BoostrapKeyStateMachine) GetCurrentState() State {
+func (sm *BoostrapKeyDistroStateMachine) GetCurrentState() State {
 	return *sm.CurrentState
 }
-func (sm *BoostrapKeyStateMachine) SetCurrentState(state *State) {
+func (sm *BoostrapKeyDistroStateMachine) SetCurrentState(state *State) {
 	sm.CurrentState = state
 }
-func (sm *BoostrapKeyStateMachine) AddState(state *State, nextState *State, previousState *State) {
+func (sm *BoostrapKeyDistroStateMachine) AddState(state *State, nextState *State, previousState *State) {
 	sm.ReverseStatesMap[state] = previousState
 	sm.TraverseStatesMap[state] = nextState
 }
-func (sm *BoostrapKeyStateMachine) GetNextState(state *State) *State {
+func (sm *BoostrapKeyDistroStateMachine) GetNextState(state *State) *State {
 	return sm.TraverseStatesMap[state]
 }
 
-func (sm *BoostrapKeyStateMachine) GetPreviousState(state *State) *State {
+func (sm *BoostrapKeyDistroStateMachine) GetPreviousState(state *State) *State {
 	return sm.ReverseStatesMap[state]
 }
 
-func (sm *BoostrapKeyStateMachine) GetStateMachineName() string {
+func (sm *BoostrapKeyDistroStateMachine) GetStateMachineName() string {
 	return sm.StateMachineName
 }
 
-func (sm *BoostrapKeyStateMachine) SetStateMachineName(stateMachineName string) {
+func (sm *BoostrapKeyDistroStateMachine) SetStateMachineName(stateMachineName string) {
 	sm.StateMachineName = stateMachineName
 }
 
-func (sm *BoostrapKeyStateMachine) GetRequestId() int64 {
+func (sm *BoostrapKeyDistroStateMachine) GetRequestId() int64 {
 	return sm.RequestId
 
 }
 
-func (sm *BoostrapKeyStateMachine) SetRequestId(requestId int64) {
+func (sm *BoostrapKeyDistroStateMachine) SetRequestId(requestId int64) {
 	sm.RequestId = requestId
 }
 
-func (sm *BoostrapKeyStateMachine) GetIsTraversalMode() bool {
+func (sm *BoostrapKeyDistroStateMachine) GetIsTraversalMode() bool {
 	return sm.IsTraversalMode
 
 }
-func (sm *BoostrapKeyStateMachine) Transit() error {
+func (sm *BoostrapKeyDistroStateMachine) Transit() error {
 
+	zap.L().Info("Transiting Key Distro FSM started")
 	for {
 		var err error
 		err = sm.bootstrapFsmDA.SetBootstrapFSM(sm.StateMachineName, sm.RequestId, sm.CurrentState.StateName, false, sm.IsTraversalMode)
@@ -97,16 +98,17 @@ func (sm *BoostrapKeyStateMachine) Transit() error {
 			}
 		}
 	}
+	zap.L().Info("Transiting Key Distro FSM ended")
 	return nil
 }
 
-func (sm *BoostrapKeyStateMachine) SetIsTraversalMode(isTraversalMode bool) {
+func (sm *BoostrapKeyDistroStateMachine) SetIsTraversalMode(isTraversalMode bool) {
 	sm.IsTraversalMode = isTraversalMode
 }
-func GenerateBootstrapStateMachine(requestId int64, databse *sql.DB) BoostrapKeyStateMachine {
+func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKeyDistroStateMachine {
 
-	zap.L().Info("Generating bootstrap state machine")
-	sm := BoostrapKeyStateMachine{}
+	zap.L().Info("Generating bootstrap state machine", zap.Int64("requestId", requestId))
+	sm := BoostrapKeyDistroStateMachine{}
 	sm.db = databse
 	sm.ReverseStatesMap = make(map[*State]*State)
 	sm.TraverseStatesMap = make(map[*State]*State)
@@ -116,7 +118,7 @@ func GenerateBootstrapStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 
 	cfg, err := config.ReadYaml()
 	if err != nil {
-		return BoostrapKeyStateMachine{}
+		return BoostrapKeyDistroStateMachine{}
 
 	}
 	//generating states

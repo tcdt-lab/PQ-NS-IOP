@@ -120,3 +120,12 @@ func IfGatewayExists(db *sql.DB, ip string, port string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func IfGatewayExistPublicKeySig(db *sql.DB, publicKeySig string) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM gateways WHERE Public_Key_Sig = ?", publicKeySig).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

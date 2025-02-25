@@ -32,7 +32,7 @@ func (a *AesGcm) Encrypt(plaintext []byte, key []byte) ([]byte, error) {
 		nonce[i] = byte(rand.Intn(255))
 	}
 	encText := gcm.Seal(nonce, nonce, plaintext, nil)
-	zap.L().Info("Encrypted text", zap.String("encText", hex.EncodeToString(encText)))
+	zap.L().Info("Text is encrypted successfully")
 	return encText, nil
 }
 

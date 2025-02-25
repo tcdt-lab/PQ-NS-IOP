@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"test.org/cryptography/pkg/asymmetric"
 
 	"github.com/stretchr/testify/assert"
@@ -111,6 +112,18 @@ func TestMessageUtil_generate_Encrypt_Decrypt_Message(t *testing.T) {
 		msgData, err := util.ConvertByteToMessageData(msgDataStr)
 		assert.NoError(t, err, "ErrorParams in ConvertByteToMessageData")
 		assert.Equal(t, msg, msgData, "MessageData not equal")
+	})
+	t.Run("Hmac Test", func(t *testing.T) {
+		msgData1 := messageDataGenerator()
+		msgData2 := messageDataGenerator()
+		symKey := "V55lxkhXLVmsDVA2UZv4M7xyM+kxh8rRcb9V/UwNMGQ="
+		util2 := messageUtilGenerator()
+		//assert.NotEqual(t, b1, b2, "MessageData not equal")
+		util.GenerateHmacMsgInfo(&msgData1, symKey)
+		util2.GenerateHmacMsgInfo(&msgData2, symKey)
+		fmt.Println(msgData1.Hmac)
+		fmt.Println(msgData2.Hmac)
+		assert.Equal(t, msgData1.Hmac, msgData2.Hmac, "HMAC not equal")
 	})
 
 }

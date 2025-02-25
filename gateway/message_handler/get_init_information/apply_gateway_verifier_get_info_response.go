@@ -1,20 +1,25 @@
-package message_applier
+package get_init_information
 
 import (
 	"database/sql"
+
 	"gateway/data"
 	"gateway/data_access"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
+	"verifier/config"
 )
 
 func ApplyGatewayVerifierGetInfoResponse(msgData pkg.MessageData, db *sql.DB) error {
 	vDA := data_access.GenerateVerifierDA(db)
 	gDA := data_access.GenerateGatewayDA(db)
+	config, err := config.ReadYaml()
+	bootstrapVerifier, err := vDA.GetVerifierByIpAndPort(config.BootstrapNode.Ip, config.BootstrapNode.Port)
+
 	gvGetInfoRes := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierInitInfoOperationResponse)
 	gatewaysList := extractGatewaysInfo(gvGetInfoRes)
-	verifiersList := extractVerifiersInfo(gvGetInfoRes)
-	err := gDA.AddUpdateGateways(gatewaysList)
+	verifiersList := extractVerifiersInfo(gvGetInfoRes, bootstrapVerifier.SymmetricKey)
+	err = gDA.AddUpdateGateways(gatewaysList)
 	if err != nil {
 		return err
 	}
@@ -37,10 +42,11 @@ func extractGatewaysInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoOp
 	return gatewaysInfo
 }
 
-func extractVerifiersInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoOperationResponse) []data.Verifier {
+func extractVerifiersInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoOperationResponse, bootStrapVerifierSymmetricKey string) []data.Verifier {
 	var verifiersInfo []data.Verifier
 	for _, verifierInfo := range gvGetInfoRes.VerifiersList {
 		verifier := data.Verifier{}
+		verifier.SymmetricKey = bootStrapVerifierSymmetricKey
 		verifier.Ip = verifierInfo.VerifierIpAddress
 		verifier.Port = verifierInfo.VerifierPort
 		verifier.PublicKey = verifierInfo.VerifierPublicKeyKem

@@ -16,9 +16,10 @@ const (
 )
 
 type Message struct {
-	IsEncrypted bool   "json:isEncrypted"
-	Data        string "json:data"
-	MsgTicket   string "json:ticket"
+	IsEncrypted  bool   "json:isEncrypted"
+	Data         string "json:data"
+	MsgTicket    string "json:ticket"
+	PublicKeySig string "json:publicKeySig"
 }
 type MessageData struct {
 	MsgInfo   MessageInfo "json:data"

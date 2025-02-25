@@ -9,7 +9,7 @@ import (
 	"verifier/message_handler/util"
 )
 
-func CreateGateVerifierGetInfoResponse(db *sql.DB) ([]byte, error) {
+func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql.DB) ([]byte, error) {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return nil, err
@@ -17,14 +17,16 @@ func CreateGateVerifierGetInfoResponse(db *sql.DB) ([]byte, error) {
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
-	vuda := data_access.GenerateVerifierUserDA(db)
-
+	gDa := data_access.GenerateGatewayDA(db)
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	gvGetInfoResponse := gateway_verifier.GatewayVerifierInitInfoOperationResponse{}
 	gvVerifier := []gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}
 	gvGateways := []gateway_verifier.GatewayVerifierInitInfoStructureGateway{}
+	senderGt, err := gDa.GetGatewayByPublicKeySig(pubKeySender)
+	if err != nil {
+		return nil, err
+	}
 
-	currentVerifier, err := vuda.GetAdminVerifierUser()
 	if err != nil {
 		return nil, err
 	}
@@ -39,14 +41,14 @@ func CreateGateVerifierGetInfoResponse(db *sql.DB) ([]byte, error) {
 		return nil, err
 	}
 	gvGetInfoResponse.VerifiersList = gvVerifier
-
+	gvGetInfoResponse.RequestId = reqId
 	msgInfo.Params = gvGetInfoResponse
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_RESPONSE
 	msgInfo.Nonce = "123"
 	msgData.MsgInfo = msgInfo
 	msgData.Signature = ""
-	protoUtil.GenerateHmacMsgInfo(&msgData, currentVerifier.SymmetricKey)
-	msgDataStrEnc, err := protoUtil.EncryptMessageData(msgData, currentVerifier.SymmetricKey)
+	protoUtil.GenerateHmacMsgInfo(&msgData, senderGt.SymmetricKey)
+	msgDataStrEnc, err := protoUtil.EncryptMessageData(msgData, senderGt.SymmetricKey)
 	if err != nil {
 		return nil, err
 	}

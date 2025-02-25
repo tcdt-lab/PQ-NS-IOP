@@ -66,6 +66,12 @@ func SendAndAwaitReplyToVerifier(verifier data.Verifier, msg []byte) ([]byte, er
 
 	//socket client to send the msg to the verifier_verifier
 	//conn, err := net.Dial("tcp", verifier.Ip+":"+verifier.Port)
+	//cfg, err := config.ReadYaml()
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	//localaddR, _ := net.ResolveTCPAddr("tcp", cfg.Client.Ip+":"+cfg.Client.Port)
 	tcpAdr, _ := net.ResolveTCPAddr("tcp", verifier.Ip+":"+verifier.Port)
 	conn, err := net.DialTCP("tcp", nil, tcpAdr)
 	if err != nil {

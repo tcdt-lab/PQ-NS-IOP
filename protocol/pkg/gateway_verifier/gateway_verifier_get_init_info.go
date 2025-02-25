@@ -4,6 +4,7 @@ type GatewayVerifierInitInfoOperationRequest struct {
 	RequestId int64 `json:"requestId"`
 }
 type GatewayVerifierInitInfoOperationResponse struct {
+	RequestId           int64                                      `json:"requestId"`
 	OperationError      string                                     `json:"operationError"`
 	CurrentVerifierInfo GatewayVerifierInitInfoStructureVerifier   `json:"currentVerifierInfo"`
 	VerifiersList       []GatewayVerifierInitInfoStructureVerifier `json:"verifierList"`

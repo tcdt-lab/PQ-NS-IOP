@@ -72,3 +72,8 @@ func (gda *GatewayDA) IfGatewayExist(ip string, port string) (bool, error) {
 
 	return data.IfGatewayExists(gda.db, ip, port)
 }
+
+func (gda *GatewayDA) IfGatewayExistByPublicKeySig(publicKeySig string) (bool, error) {
+
+	return data.IfGatewayExistPublicKeySig(gda.db, publicKeySig)
+}

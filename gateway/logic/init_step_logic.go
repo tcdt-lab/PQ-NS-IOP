@@ -13,6 +13,7 @@ import (
 
 func InintStepLogic(cfg *config.Config, db *sql.DB) (int64, int64, error) {
 
+	zap.L().Info("Initiating bootstrap and admin")
 	admin := data.GatewayUser{}
 	cacheHAndler := data_access.NewCacheHandlerDA()
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
@@ -30,8 +31,10 @@ func InintStepLogic(cfg *config.Config, db *sql.DB) (int64, int64, error) {
 
 	bootstrapExists, err := vDa.IfVerifierExistsByIpandPort(verifier)
 	if bootstrapExists {
+
 		adminId, _ := cacheHAndler.GetUserAdminId()
 		bootstrapId, _ := cacheHAndler.GetBootstrapVerifierId()
+		zap.L().Info("Bootstrap and Admin already exists", zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", adminId))
 		return bootstrapId, adminId, nil
 	}
 
@@ -58,6 +61,6 @@ func InintStepLogic(cfg *config.Config, db *sql.DB) (int64, int64, error) {
 	}
 	cacheHAndler.SetBootstrapVerifierId(bootstrapId)
 	cacheHAndler.SetUserAdminId(gatewayId)
-
+	zap.L().Info("Bootstrap and Admin generated", zap.String("Step:", "inint_logic_step"), zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", gatewayId))
 	return bootstrapId, gatewayId, nil
 }

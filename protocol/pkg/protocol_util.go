@@ -4,6 +4,7 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/gob"
+	"fmt"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg/gateway_verifier"
 
@@ -115,6 +116,11 @@ func (mp *ProtocolUtil) GenerateHmacMsgInfo(msg *MessageData, key string) error 
 	if err != nil {
 		return err
 	}
+	fmt.Println("**********************")
+	fmt.Println(b64.StdEncoding.EncodeToString(byteMsgInfo))
+	fmt.Println("NOW")
+	fmt.Println(b64.StdEncoding.EncodeToString(byteKey))
+	fmt.Println("********************")
 	hmacBytes, err := mp.HmacHandler.GenerateMessageMac(byteKey, byteMsgInfo)
 	if err != nil {
 		return err
@@ -124,6 +130,7 @@ func (mp *ProtocolUtil) GenerateHmacMsgInfo(msg *MessageData, key string) error 
 }
 
 // It gets A message data and HMAC and verifies the HMAC
+// Deprecated: Use VerifyHmac instead
 func (mp *ProtocolUtil) VerifyHmac(msg MessageData, key string) (bool, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
