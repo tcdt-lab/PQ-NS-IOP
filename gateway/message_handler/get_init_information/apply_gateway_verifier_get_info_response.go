@@ -1,15 +1,16 @@
 package message_applier
 
 import (
+	"database/sql"
 	"gateway/data"
 	"gateway/data_access"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func ApplyGatewayVerifierGetInfoResponse(msgData pkg.MessageData) error {
-	vDA := data_access.VerifierDA{}
-	gDA := data_access.GatewayDA{}
+func ApplyGatewayVerifierGetInfoResponse(msgData pkg.MessageData, db *sql.DB) error {
+	vDA := data_access.GenerateVerifierDA(db)
+	gDA := data_access.GenerateGatewayDA(db)
 	gvGetInfoRes := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierInitInfoOperationResponse)
 	gatewaysList := extractGatewaysInfo(gvGetInfoRes)
 	verifiersList := extractVerifiersInfo(gvGetInfoRes)

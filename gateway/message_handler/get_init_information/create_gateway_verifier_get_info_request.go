@@ -1,6 +1,7 @@
 package message_creator
 
 import (
+	"database/sql"
 	"gateway/config"
 	"gateway/data_access"
 	"gateway/message_handler/util"
@@ -9,12 +10,12 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func CreateGatewayVerifierGetInfoOperationMessage(c *config.Config, verifierIp string, verifierPort string) ([]byte, error) {
+func CreateGatewayVerifierGetInfoOperationMessage(c *config.Config, verifierIp string, verifierPort string, db *sql.DB) ([]byte, error) {
 
 	msg := pkg.Message{}
 	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
-	vDA := data_access.VerifierDA{}
+	vDA := data_access.GenerateVerifierDA(db)
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	destinationVerifier, err := vDA.GetVerifierByIpAndPort(verifierIp, verifierPort)
 	nonce, err := util.GenerateNonce()
