@@ -10,7 +10,7 @@ import (
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData, db *sql.DB) error {
+func ApplyGatewayVerifierKeyDistributionResponse(msgInfo pkg.MessageInfo, db *sql.DB) error {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func ApplyGatewayVerifierKeyDistributionResponse(msgData pkg.MessageData, db *sq
 		return err
 	}
 	pkgUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
-	gvKeyDistributionRes := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionResponse)
+	gvKeyDistributionRes := msgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionResponse)
 	_, sharedKey, err := pkgUtil.AsymmetricHandler.KemGenerateSecretKey(gtUser.SecretKeyKem, gvKeyDistributionRes.PublicKeyKem, gvKeyDistributionRes.CipherText, cfg.Security.KEMScheme)
 
 	bootstrapVerifier, err := vl.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)

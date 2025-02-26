@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	b64 "encoding/base64"
-	"encoding/hex"
 	"go.uber.org/zap"
 )
 
@@ -16,9 +15,6 @@ func (h *HMAC) GenerateMessageMac(key []byte, message []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(message)
 	generatedMac := mac.Sum(nil)
-	zap.L().Info("used key", zap.String("key", hex.EncodeToString(key)))
-	zap.L().Info("used message", zap.String("message", hex.EncodeToString(message)))
-	zap.L().Info("Generated MAC", zap.String("mac", hex.EncodeToString(generatedMac)))
 	return generatedMac, nil
 }
 

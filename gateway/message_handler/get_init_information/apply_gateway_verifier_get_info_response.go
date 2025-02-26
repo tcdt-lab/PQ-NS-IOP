@@ -10,13 +10,13 @@ import (
 	"verifier/config"
 )
 
-func ApplyGatewayVerifierGetInfoResponse(msgData pkg.MessageData, db *sql.DB) error {
+func ApplyGatewayVerifierGetInfoResponse(msgInfo pkg.MessageInfo, db *sql.DB) error {
 	vDA := data_access.GenerateVerifierDA(db)
 	gDA := data_access.GenerateGatewayDA(db)
 	config, err := config.ReadYaml()
 	bootstrapVerifier, err := vDA.GetVerifierByIpAndPort(config.BootstrapNode.Ip, config.BootstrapNode.Port)
 
-	gvGetInfoRes := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierInitInfoOperationResponse)
+	gvGetInfoRes := msgInfo.Params.(gateway_verifier.GatewayVerifierInitInfoOperationResponse)
 	gatewaysList := extractGatewaysInfo(gvGetInfoRes)
 	verifiersList := extractVerifiersInfo(gvGetInfoRes, bootstrapVerifier.SymmetricKey)
 	err = gDA.AddUpdateGateways(gatewaysList)

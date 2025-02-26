@@ -13,7 +13,7 @@ import (
 	"verifier/message_handler/util"
 )
 
-func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData, db *sql.DB) (string, error) {
+func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageInfo, db *sql.DB) (string, error) {
 	cfg, err := config.ReadYaml()
 	if err != nil {
 		return "", err
@@ -23,7 +23,7 @@ func ApplyGatewayVerifierKeyDistributionRequest(msgData pkg.MessageData, db *sql
 	gDA := data_access.GenerateGatewayDA(db)
 	vuDA := data_access.GenerateVerifierUserDA(db)
 	verifierUSer, err := vuDA.GetAdminVerifierUser()
-	gvKeyDistributionParams := msgData.MsgInfo.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
+	gvKeyDistributionParams := msgData.Params.(gateway_verifier.GatewayVerifierKeyDistributionRequest)
 	cipherTextBytes, sharedKey, _ := protoUtil.AsymmetricHandler.KemGenerateSecretKey(verifierUSer.SecretKeyKem, gvKeyDistributionParams.GatewayPublicKeyKem, "", cfg.Security.KEMScheme)
 	cipherTextStr := b64.StdEncoding.EncodeToString(cipherTextBytes)
 

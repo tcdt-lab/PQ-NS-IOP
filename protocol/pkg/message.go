@@ -17,14 +17,11 @@ const (
 
 type Message struct {
 	IsEncrypted  bool   "json:isEncrypted"
-	Data         string "json:data"
+	MsgInfo      string "json:data"
+	Signature    string "json:signature"
+	Hmac         string "json:hmac"
 	MsgTicket    string "json:ticket"
 	PublicKeySig string "json:publicKeySig"
-}
-type MessageData struct {
-	MsgInfo   MessageInfo "json:data"
-	Signature string      "json:signature"
-	Hmac      string      "json:hmac"
 }
 
 type MessageInfo struct {

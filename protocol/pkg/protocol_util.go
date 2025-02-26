@@ -4,7 +4,6 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/gob"
-	"fmt"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg/gateway_verifier"
 
@@ -30,16 +29,7 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message
-func (mp *ProtocolUtil) VerifyMessageDataSignature(msg MessageData, pubKeyStr string, schemeName string) (bool, error) {
-
-	signatureBytes, err := b64.StdEncoding.DecodeString(msg.Signature)
-	if err != nil {
-		return false, err
-	}
-	infoBytes, err := mp.ConvertMessageInfoToByte(msg.MsgInfo)
-	if err != nil {
-		return false, err
-	}
+func (mp *ProtocolUtil) VerifyMessageSignature(signatureBytes []byte, infoBytes []byte, pubKeyStr string, schemeName string) (bool, error) {
 	response, err := mp.AsymmetricHandler.Verify(pubKeyStr, infoBytes, signatureBytes, schemeName)
 	if err != nil {
 		return false, err
@@ -49,12 +39,9 @@ func (mp *ProtocolUtil) VerifyMessageDataSignature(msg MessageData, pubKeyStr st
 
 // SignMessageInfo Gets A message and signs the message
 // It returns A message with signature field filled
-func (mp *ProtocolUtil) SignMessageInfo(msg *MessageData, secKeyStr string, schemeName string) error {
-	dataMsgBytes, err := mp.ConvertMessageInfoToByte(msg.MsgInfo)
-	if err != nil {
-		return err
-	}
-	response, err := mp.AsymmetricHandler.Sign(secKeyStr, dataMsgBytes, schemeName)
+func (mp *ProtocolUtil) SignMessageInfo(msg *Message, messageInfoBytes []byte, secKeyStr string, schemeName string) error {
+
+	response, err := mp.AsymmetricHandler.Sign(secKeyStr, messageInfoBytes, schemeName)
 	if err != nil {
 		zap.L().Error("ErrorParams while signing the message", zap.Error(err))
 		return err
@@ -64,86 +51,98 @@ func (mp *ProtocolUtil) SignMessageInfo(msg *MessageData, secKeyStr string, sche
 }
 
 // DecryptMessageData Gets A message as byte string and decrypts the message
-func (mp *ProtocolUtil) DecryptMessageData(msg string, symmetricKey string) (MessageData, error) {
+func (mp *ProtocolUtil) DecryptMessageInfo(msgInfo string, symmetricKey string) (MessageInfo, []byte, error) {
 
-	msgBytes, err := b64.StdEncoding.DecodeString(msg)
+	msgBytes, err := b64.StdEncoding.DecodeString(msgInfo)
 	if err != nil {
-		return MessageData{}, err
+		return MessageInfo{}, nil, err
 	}
 	keyByte, err := mp.AesHandler.ConvertKeyStr64ToBytes(symmetricKey)
 	if err != nil {
-		return MessageData{}, err
+		return MessageInfo{}, nil, err
 	}
-	decText, err := mp.AesHandler.Decrypt(msgBytes, keyByte)
+	decInfoBytes, err := mp.AesHandler.Decrypt(msgBytes, keyByte)
 	if err != nil {
-		return MessageData{}, err
+		return MessageInfo{}, nil, err
 	}
-	convertedMessage, err := mp.ConvertByteToMessageData(decText)
+	convertedMessage, err := mp.ConvertByteToMessageInfo(decInfoBytes)
 	if err != nil {
-		return MessageData{}, err
+		return MessageInfo{}, nil, err
 	}
-	return convertedMessage, nil
+	return convertedMessage, decInfoBytes, nil
+}
+func (mp *ProtocolUtil) ConvertPlainStrToMessageInfo(data string) (MessageInfo, []byte, error) {
+	msgBytes, err := b64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return MessageInfo{}, nil, err
+	}
+	convertedMessage, err := mp.ConvertByteToMessageInfo(msgBytes)
+	if err != nil {
+		return MessageInfo{}, nil, err
+	}
+	return convertedMessage, msgBytes, nil
 }
 
 // It gets A message and encrypts the message and retun it as A byte array
-func (mp *ProtocolUtil) EncryptMessageData(msg MessageData, symmetricKey string) (string, error) {
+func (mp *ProtocolUtil) EncryptMessageInfo(msgInfoBytes []byte, symmetricKey string) (string, []byte, error) {
 
 	keyByte, err := mp.AesHandler.ConvertKeyStr64ToBytes(symmetricKey)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	msgBytes, err := mp.ConvertMessageDataToByte(msg)
+	encBytes, err := mp.AesHandler.Encrypt(msgInfoBytes, keyByte)
 	if err != nil {
-		return "", err
-	}
-	encBytes, err := mp.AesHandler.Encrypt(msgBytes, keyByte)
-	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	encText := b64.StdEncoding.EncodeToString(encBytes)
-	return encText, nil
+	return encText, encBytes, nil
 }
 
 // It gets A message data produces HMAC for the message
 // It returns A message with filled hmac
-func (mp *ProtocolUtil) GenerateHmacMsgInfo(msg *MessageData, key string) error {
+func (mp *ProtocolUtil) GenerateHmacMsgInfo(msgInfo []byte, key string) (string, []byte, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
-	byteMsgInfo, err := mp.ConvertMessageInfoToByte(msg.MsgInfo)
+
+	hmacBytes, err := mp.HmacHandler.GenerateMessageMac(byteKey, msgInfo)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
-	fmt.Println("**********************")
-	fmt.Println(b64.StdEncoding.EncodeToString(byteMsgInfo))
-	fmt.Println("NOW")
-	fmt.Println(b64.StdEncoding.EncodeToString(byteKey))
-	fmt.Println("********************")
-	hmacBytes, err := mp.HmacHandler.GenerateMessageMac(byteKey, byteMsgInfo)
-	if err != nil {
-		return err
-	}
-	msg.Hmac = mp.HmacHandler.ConvertHMacMsgToBase64(hmacBytes)
-	return nil
+	hmacStr := mp.HmacHandler.ConvertHMacMsgToBase64(hmacBytes)
+	return hmacStr, hmacBytes, nil
 }
 
 // It gets A message data and HMAC and verifies the HMAC
-// Deprecated: Use VerifyHmac instead
-func (mp *ProtocolUtil) VerifyHmac(msg MessageData, key string) (bool, error) {
+
+func (mp *ProtocolUtil) VerifyHmacByte(recievedHmac []byte, recievedMsgInfo []byte, key string) (bool, error) {
 
 	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
 	if err != nil {
 		return false, err
 	}
-
-	msgHmac := mp.HmacHandler.ConvertBase64ToHMacMsg(msg.Hmac)
-	byteMsgInfo, err := mp.ConvertMessageInfoToByte(msg.MsgInfo)
+	_, generared_hmc, err := mp.GenerateHmacMsgInfo(recievedMsgInfo, key)
 	if err != nil {
 		return false, err
 	}
-	return mp.HmacHandler.VerifyMessageMac(byteKey, byteMsgInfo, msgHmac), nil
+	return mp.HmacHandler.VerifyMessageMac(byteKey, generared_hmc, recievedHmac), nil
+}
+
+func (mp *ProtocolUtil) VerifyHmac(msgHmac string, msgInfoBytes []byte, key string) (bool, error) {
+	byteKey, err := mp.AesHandler.ConvertKeyStr64ToBytes(key)
+	if err != nil {
+		return false, err
+	}
+	hmacBytes, err := b64.StdEncoding.DecodeString(msgHmac)
+	if err != nil {
+		return false, err
+	}
+	if err != nil {
+		return false, err
+	}
+	return mp.HmacHandler.VerifyMessageMac(byteKey, msgInfoBytes, hmacBytes), nil
 }
 
 // It gets A message and returna ticket struct  Ticket
@@ -209,45 +208,6 @@ func (mp *ProtocolUtil) ConvertByteToTicket(data []byte) (Ticket, error) {
 		return Ticket{}, err
 	}
 	return ticket, nil
-}
-
-func (mp *ProtocolUtil) ConvertMessageDataToByte(msg MessageData) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-
-	err := enc.Encode(msg)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), err
-}
-
-func (mp *ProtocolUtil) ConvertMessageDataToB64String(msg MessageData) (string, error) {
-	msgBytes, err := mp.ConvertMessageDataToByte(msg)
-	if err != nil {
-		return "", err
-	}
-	return b64.StdEncoding.EncodeToString(msgBytes), nil
-}
-
-func (mp *ProtocolUtil) ConvertB64ToMessageData(msg string) (MessageData, error) {
-	msgBytes, err := b64.StdEncoding.DecodeString(msg)
-	if err != nil {
-		return MessageData{}, err
-	}
-	return mp.ConvertByteToMessageData(msgBytes)
-}
-
-func (mp *ProtocolUtil) ConvertByteToMessageData(data []byte) (MessageData, error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var msg MessageData
-	err := dec.Decode(&msg)
-	if err != nil {
-		return MessageData{}, err
-	}
-	return msg, nil
 }
 
 func (mp *ProtocolUtil) ConvertMessageInfoToByte(data MessageInfo) ([]byte, error) {

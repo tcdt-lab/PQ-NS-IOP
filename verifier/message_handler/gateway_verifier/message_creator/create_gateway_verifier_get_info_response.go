@@ -15,7 +15,7 @@ func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql
 		return nil, err
 	}
 	msg := pkg.Message{}
-	msgData := pkg.MessageData{}
+
 	msgInfo := pkg.MessageInfo{}
 	gDa := data_access.GenerateGatewayDA(db)
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
@@ -45,14 +45,16 @@ func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql
 	msgInfo.Params = gvGetInfoResponse
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_RESPONSE
 	msgInfo.Nonce = "123"
-	msgData.MsgInfo = msgInfo
-	msgData.Signature = ""
-	protoUtil.GenerateHmacMsgInfo(&msgData, senderGt.SymmetricKey)
-	msgDataStrEnc, err := protoUtil.EncryptMessageData(msgData, senderGt.SymmetricKey)
+	msgInfoBytes, _ := protoUtil.ConvertMessageInfoToByte(msgInfo)
+
+	msg.Signature = ""
+	hmacStr, _, _ := protoUtil.GenerateHmacMsgInfo(msgInfoBytes, senderGt.SymmetricKey)
+	msgInfoStrEnc, _, err := protoUtil.EncryptMessageInfo(msgInfoBytes, senderGt.SymmetricKey)
 	if err != nil {
 		return nil, err
 	}
-	msg.Data = msgDataStrEnc
+	msg.Hmac = hmacStr
+	msg.MsgInfo = msgInfoStrEnc
 	msg.IsEncrypted = true
 	msg.MsgTicket = ""
 	msgBytes, err := protoUtil.ConvertMessageToByte(msg)

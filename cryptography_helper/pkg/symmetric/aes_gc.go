@@ -53,7 +53,6 @@ func (a *AesGcm) Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 	}
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	zap.L().Info("Decrypted text", zap.String("plaintext", string(plaintext)))
 	return plaintext, nil
 }
 

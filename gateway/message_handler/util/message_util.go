@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"gateway/config"
-	"gateway/data_access"
 	_ "github.com/go-sql-driver/mysql"
 	"test.org/cryptography/pkg/asymmetric"
 	"test.org/cryptography/pkg/symmetric"
@@ -39,29 +38,6 @@ func GenerateNonce() (string, error) {
 	}
 	return hex.EncodeToString(nonce), nil
 
-}
-
-func CheckMessageSignature(msg *pkg.MessageData, sourceIp string, sourcePort string, isSourceVerifier bool, util pkg.ProtocolUtil, cfg *config.Config) (bool, error) {
-	if isSourceVerifier {
-		vDa := data_access.VerifierDA{}
-		verfifer, err := vDa.GetVerifierByIpAndPort(sourceIp, sourcePort)
-		if err != nil {
-			return false, err
-		}
-		return util.VerifyMessageDataSignature(*msg, verfifer.PublicKey, cfg.Security.DSAScheme)
-	} else {
-		gDa := data_access.GatewayDA{}
-		gateway, err := gDa.GetGatewayByIpAndPort(sourceIp, sourcePort)
-		if err != nil {
-			return false, err
-		}
-		return util.VerifyMessageDataSignature(*msg, gateway.PublicKey, cfg.Security.DSAScheme)
-	}
-
-}
-
-func CheckMessageHMac(msg *pkg.MessageData, symmetricKey string, util pkg.ProtocolUtil) (bool, error) {
-	return util.VerifyHmac(*msg, symmetricKey)
 }
 
 func GenerateRequestNumber() (int64, error) {

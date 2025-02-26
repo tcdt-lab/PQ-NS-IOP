@@ -11,23 +11,23 @@ import (
 	"verifier/message_handler/util"
 )
 
-func ParseRequest(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageData, string, error) {
+func ParseRequest(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	if err != nil {
 		zap.L().Error("Error reading config.yaml file", zap.Error(err))
-		return pkg.MessageData{}, "", err
+		return pkg.MessageInfo{}, "", err
 	}
 
 	message, err := protoUtil.ConvertByteToMessage(msgBytes)
 	if err != nil {
 		zap.L().Error("Error while converting byte to message", zap.Error(err))
-		return pkg.MessageData{}, "", err
+		return pkg.MessageInfo{}, "", err
 	}
 
-	msgData := pkg.MessageData{}
-
+	msgInfo := pkg.MessageInfo{}
+	var decMsgInfoBytes []byte
 	gDA := data_access.GenerateGatewayDA(db)
 
 	gatewayExists, err := gDA.IfGatewayExistByPublicKeySig(message.PublicKeySig)
@@ -35,62 +35,58 @@ func ParseRequest(msgBytes []byte, senderIp string, senderPort string, db *sql.D
 		sourceGateway, err := gDA.GetGatewayByPublicKeySig(message.PublicKeySig)
 		if err != nil {
 			zap.L().Error("Error while getting gateway", zap.Error(err))
-			return pkg.MessageData{}, "", err
+			return pkg.MessageInfo{}, "", err
 		}
 		if message.IsEncrypted {
 
-			msgData, err = protoUtil.DecryptMessageData(message.Data, sourceGateway.SymmetricKey)
+			msgInfo, decMsgInfoBytes, err = protoUtil.DecryptMessageInfo(message.MsgInfo, sourceGateway.SymmetricKey)
 			if err != nil {
 				zap.L().Error("Error while decrypting message data", zap.Error(err))
-				return pkg.MessageData{}, "", err
+				return pkg.MessageInfo{}, "", err
 			}
 		} else {
-			msgData, err = protoUtil.ConvertB64ToMessageData(message.Data)
-			msgInfoByte, _ := protoUtil.ConvertMessageInfoToByte(msgData.MsgInfo)
-			messageInfoStr := b64.StdEncoding.EncodeToString(msgInfoByte)
-			zap.L().Info("message info Str", zap.String("message info", messageInfoStr))
+			msgInfo, decMsgInfoBytes, err = protoUtil.ConvertPlainStrToMessageInfo(message.MsgInfo)
+
 			if err != nil {
 				zap.L().Error("Error while converting b64 to message data", zap.Error(err))
-				return pkg.MessageData{}, "", err
+				return pkg.MessageInfo{}, "", err
 			}
 		}
-		if msgData.Hmac != "" {
-			protoUtil.GenerateHmacMsgInfo(&msgData, sourceGateway.SymmetricKey)
+		if message.Hmac != "" {
 
-			protoUtil.GenerateHmacMsgInfo(&msgData, sourceGateway.SymmetricKey)
-
-			res, err := protoUtil.VerifyHmac(msgData, sourceGateway.SymmetricKey)
+			res, err := protoUtil.VerifyHmac(message.Hmac, decMsgInfoBytes, sourceGateway.SymmetricKey)
 
 			if err != nil {
 				zap.L().Error("Error while verifying HMAC", zap.Error(err))
-				return pkg.MessageData{}, "", err
+				return pkg.MessageInfo{}, "", err
 			}
 			if !res {
 				zap.L().Error("HMAC is not valid")
-				return pkg.MessageData{}, "", errors.New("HMAC is not valid")
+				return pkg.MessageInfo{}, "", errors.New("HMAC is not valid")
 			}
-			return pkg.MessageData{}, "", err
-		} else if msgData.Signature != "" {
-			res, err := protoUtil.VerifyMessageDataSignature(msgData, sourceGateway.PublicKeySig, cfg.Security.DSAScheme)
+
+		}
+		if message.Signature != "" {
+			signatureBytes, _ := b64.StdEncoding.DecodeString(message.Signature)
+			res, err := protoUtil.VerifyMessageSignature(signatureBytes, decMsgInfoBytes, sourceGateway.PublicKeySig, cfg.Security.DSAScheme)
 			if err != nil {
 				zap.L().Error("Error while verifying signature", zap.Error(err))
-				return pkg.MessageData{}, "", err
+				return pkg.MessageInfo{}, "", err
 			}
 			if !res {
 				zap.L().Error("Signature is not valid")
-				return pkg.MessageData{}, "", errors.New("Signature is not valid")
+				return pkg.MessageInfo{}, "", errors.New("Signature is not valid")
 			}
-		} else {
-			msgData, err = protoUtil.ConvertB64ToMessageData(message.Data)
 		}
-		return msgData, message.PublicKeySig, nil
+		return msgInfo, message.PublicKeySig, nil
 	} else {
-		msgData, err = protoUtil.ConvertB64ToMessageData(message.Data)
+		msgInfoBytes, _ := b64.StdEncoding.DecodeString(message.MsgInfo)
+		msgInfo, err = protoUtil.ConvertByteToMessageInfo(msgInfoBytes)
 		if err != nil {
 			zap.L().Error("Error while converting b64 to message data", zap.Error(err))
-			return pkg.MessageData{}, "", err
+			return pkg.MessageInfo{}, "", err
 		}
-		return msgData, message.PublicKeySig, nil
+		return msgInfo, message.PublicKeySig, nil
 	}
 
 }

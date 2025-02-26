@@ -2,6 +2,7 @@ package key_distribution
 
 import (
 	"database/sql"
+	b64 "encoding/base64"
 	"go.uber.org/zap"
 	"strconv"
 	"test.org/protocol/pkg"
@@ -24,7 +25,7 @@ func CreateGatewayVerifierKeyDistributionResponse(cipherTextStr string, db *sql.
 	vuda.GetVerifierUser(adminId)
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	msg := pkg.Message{}
-	msgData := pkg.MessageData{}
+
 	msgInfo := pkg.MessageInfo{}
 	adminVerifierUSer, err := vuda.GetAdminVerifierUser()
 	if err != nil {
@@ -36,17 +37,17 @@ func CreateGatewayVerifierKeyDistributionResponse(cipherTextStr string, db *sql.
 	msgInfo.Params = gvKeyDistributionResponse
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_RESPONSE_ID
 	msgInfo.Nonce = "123"
-	msgData.MsgInfo = msgInfo
+	msgInfoBytes, _ := protoUtil.ConvertMessageInfoToByte(msgInfo)
 
-	protoUtil.GenerateHmacMsgInfo(&msgData, adminVerifierUSer.SymmetricKey)
-	msgDataStr, err := protoUtil.ConvertMessageDataToB64String(msgData)
+	hmacStr, _, err := protoUtil.GenerateHmacMsgInfo(msgInfoBytes, adminVerifierUSer.SymmetricKey)
 	if err != nil {
 		return nil, err
 	}
-	msg.Data = msgDataStr
+	msg.Hmac = hmacStr
+	msg.MsgInfo = b64.StdEncoding.EncodeToString(msgInfoBytes)
 	msg.IsEncrypted = false
 	msg.MsgTicket = ""
 	msgBytes, err := protoUtil.ConvertMessageToByte(msg)
-	zap.L().Info("Generated Response is", zap.String("requnumber", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
+	zap.L().Info("Generated Response is", zap.String("requnumber", strconv.FormatInt(msgInfo.RequestId, 10)))
 	return msgBytes, nil
 }

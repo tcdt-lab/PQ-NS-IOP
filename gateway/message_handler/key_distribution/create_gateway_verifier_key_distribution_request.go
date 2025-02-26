@@ -14,7 +14,6 @@ import (
 
 func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int64, db *sql.DB) []byte {
 	msg := pkg.Message{}
-	msgData := pkg.MessageData{}
 	msgInfo := pkg.MessageInfo{}
 	guDa := data_access.GenerateGatewayUserDA(db)
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
@@ -45,19 +44,14 @@ func CreateGatewayVerifierKeyDistributionMessage(c *config.Config, requestId int
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID
 	msgInfo.Params = gvKeyDistributionReq
 	msgInfo.RequestId = requestId
-	msgData.MsgInfo = msgInfo
-	err = protocolUtil.SignMessageInfo(&msgData, currentUSer.SecretKeyDsa, c.Security.DSAScheme)
+	msgInfoBytes, err := protocolUtil.ConvertMessageInfoToByte(msgInfo)
 	if err != nil {
-		zap.L().Error("Error while signing message info", zap.Error(err))
+		zap.L().Error("Error while converting message info to byte", zap.Error(err))
 		return nil
 	}
-	msgDataByte, err := protocolUtil.ConvertMessageDataToByte(msgData)
-	if err != nil {
-		zap.L().Error("Error while converting message data to byte", zap.Error(err))
-		return nil
-	}
+	msgInfoStr := b64.StdEncoding.EncodeToString(msgInfoBytes)
 
-	msg.Data = b64.StdEncoding.EncodeToString(msgDataByte)
+	msg.MsgInfo = msgInfoStr
 	msg.PublicKeySig = currentUSer.PublicKeyDsa
 	msg.IsEncrypted = false
 	msgByte, err := protocolUtil.ConvertMessageToByte(msg)

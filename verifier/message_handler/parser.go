@@ -39,24 +39,24 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 	if err != nil {
 		return nil, err
 	}
-	msgData, senderPubKey, err := ParseRequest(message, senderIp, senderPort, mp.db)
+	msgInfo, senderPubKey, err := ParseRequest(message, senderIp, senderPort, mp.db)
 	if err != nil {
 		zap.L().Error("Error while parsing request", zap.Error(err))
 		return mp.GenerateGeneralErrorResponse(err, *cfg), err
 	}
 
-	switch msgData.MsgInfo.OperationTypeId {
+	switch msgInfo.OperationTypeId {
 	case pkg.GATEWAY_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID:
-		zap.L().Info("Handling Key Distribution Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
-		response, err = mp.HandleKeyDistributionResponse(msgData, senderIp, senderPort)
+		zap.L().Info("Handling Key Distribution Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
+		response, err = mp.HandleKeyDistributionResponse(msgInfo, senderIp, senderPort)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
 		return response, nil
 
 	case pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_REQEST:
-		zap.L().Info("Handling Get Info Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgData.MsgInfo.RequestId, 10)))
-		response, err = mp.HandleGetInfoResponse(msgData.MsgInfo.RequestId, senderPubKey)
+		zap.L().Info("Handling Get Info Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
+		response, err = mp.HandleGetInfoResponse(msgInfo.RequestId, senderPubKey)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
@@ -73,7 +73,7 @@ func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Confi
 	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 
 	msg := pkg.Message{}
-	msgData := pkg.MessageData{}
+
 	msgInfo := pkg.MessageInfo{}
 	errorParams := pkg.ErrorParams{}
 
@@ -85,21 +85,18 @@ func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Confi
 	errorParams.ErrorCode = pkg.GENERAL_ERROR
 	errorParams.ErrorMessage = err.Error()
 	msgInfo.Params = errorParams
-	msgData.MsgInfo = msgInfo
 	msgInfo.OperationTypeId = pkg.GENERAL_ERROR
-	msgUtil.SignMessageInfo(&msgData, verifeirUser.SecretKeySig, c.Security.DSAScheme)
-	msgDataByte, err := msgUtil.ConvertMessageDataToByte(msgData)
-	if err != nil {
-		zap.L().Error("Error while converting message data to byte", zap.Error(err))
-	}
-	msg.Data = b64.StdEncoding.EncodeToString(msgDataByte)
+	msgInfoBytes, _ := msgUtil.ConvertMessageInfoToByte(msgInfo)
+	msgInfoStr := b64.StdEncoding.EncodeToString(msgInfoBytes)
+	msg.MsgInfo = msgInfoStr
+	msgUtil.SignMessageInfo(&msg, msgInfoBytes, verifeirUser.SecretKeySig, c.Security.DSAScheme)
 	msg.IsEncrypted = false
 	msg.MsgTicket = ""
 	msgByte, err := msgUtil.ConvertMessageToByte(msg)
 	return msgByte
 }
 
-func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageData, senderIp string, senderPort string) ([]byte, error) {
+func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageInfo, senderIp string, senderPort string) ([]byte, error) {
 
 	cipherText, err := key_distribution.ApplyGatewayVerifierKeyDistributionRequest(msgData, mp.db)
 	if err != nil {
