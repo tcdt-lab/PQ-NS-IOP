@@ -8,9 +8,8 @@ import (
 	"os"
 	"strconv"
 	"test.org/protocol/pkg"
-	"verifier/message_handler/gateway_verifier/message_creator"
-	"verifier/message_handler/key_distribution"
-
+	"verifier/message_handler/gateway_verifier/gv_get_info"
+	key_distribution2 "verifier/message_handler/gateway_verifier/gv_key_distribution"
 	"verifier/message_handler/util"
 
 	"verifier/config"
@@ -98,12 +97,12 @@ func (mp *MessageHandler) GenerateGeneralErrorResponse(err error, c config.Confi
 
 func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageInfo, senderIp string, senderPort string) ([]byte, error) {
 
-	cipherText, err := key_distribution.ApplyGatewayVerifierKeyDistributionRequest(msgData, mp.db)
+	cipherText, err := key_distribution2.ApplyGatewayVerifierKeyDistributionRequest(msgData, mp.db)
 	if err != nil {
 		zap.L().Error("Error while applying key distribution request", zap.Error(err))
 		return nil, err
 	}
-	res, err := key_distribution.CreateGatewayVerifierKeyDistributionResponse(cipherText, mp.db)
+	res, err := key_distribution2.CreateGatewayVerifierKeyDistributionResponse(cipherText, mp.db)
 	if err != nil {
 		zap.L().Error("Error while creating key distribution response", zap.Error(err))
 		return nil, err
@@ -113,7 +112,7 @@ func (mp *MessageHandler) HandleKeyDistributionResponse(msgData pkg.MessageInfo,
 
 func (mp *MessageHandler) HandleGetInfoResponse(reqId int64, senderPubKey string) ([]byte, error) {
 
-	res, err := message_creator.CreateGateVerifierGetInfoResponse(senderPubKey, reqId, mp.db)
+	res, err := gv_get_info.CreateGateVerifierGetInfoResponse(senderPubKey, reqId, mp.db)
 	if err != nil {
 		zap.L().Error("Error while creating get info response", zap.Error(err))
 		return nil, err

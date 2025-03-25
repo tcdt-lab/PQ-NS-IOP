@@ -77,3 +77,15 @@ func (gda *GatewayDA) IfGatewayExistByPublicKeySig(publicKeySig string) (bool, e
 
 	return data.IfGatewayExistPublicKeySig(gda.db, publicKeySig)
 }
+
+func (gda *GatewayDA) AddUpdateGateways(gateways []data.Gateway) (int64, error) {
+	var count int64
+	for _, gateway := range gateways {
+		if _, err := gda.AddUpdateGateway(gateway); err != nil {
+			return count, err
+		}
+		count++
+	}
+
+	return count, nil
+}

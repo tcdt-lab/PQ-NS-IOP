@@ -1,4 +1,4 @@
-package key_distribution
+package gv_key_distribution
 
 //// As this step is for key setup, it is the only place we have to verify the signiture
 //// In other requests, we can verify the signiture in the parser

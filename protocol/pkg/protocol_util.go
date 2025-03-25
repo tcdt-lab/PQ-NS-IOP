@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"go.uber.org/zap"
 	"test.org/protocol/pkg/gateway_verifier"
+	"test.org/protocol/pkg/verifier_verifier"
 
 	"test.org/cryptography/pkg/asymmetric"
 	"test.org/cryptography/pkg/symmetric"
@@ -26,6 +27,10 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoStructureGateway{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationResponse{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationRequest{})
+	gob.Register(verifier_verifier.VVerifierKeyDistributionRequest{})
+	gob.Register(verifier_verifier.VVerifierKeyDistributionResponse{})
+	gob.Register(verifier_verifier.VVInitInfoOperationRequest{})
+	gob.Register(verifier_verifier.VVInitInfoOperationResponse{})
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message

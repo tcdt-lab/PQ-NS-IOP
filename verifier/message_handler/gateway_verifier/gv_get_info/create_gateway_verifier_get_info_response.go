@@ -1,4 +1,4 @@
-package message_creator
+package gv_get_info
 
 import (
 	"database/sql"

@@ -28,12 +28,12 @@ func (vl *VerifierDA) UpdateVerifier(verifier data.Verifier) (int64, error) {
 	return data.UpdateVerifier(&verifier, vl.db)
 }
 
-func (vl *VerifierDA) RemoveVerifier(id int) (int64, error) {
+func (vl *VerifierDA) RemoveVerifier(id int64) (int64, error) {
 
 	return data.RemoveVerifier(vl.db, id)
 }
 
-func (vl *VerifierDA) GetVerifier(id int) (data.Verifier, error) {
+func (vl *VerifierDA) GetVerifier(id int64) (data.Verifier, error) {
 
 	return data.GetVerifier(vl.db, id)
 }
@@ -59,4 +59,15 @@ func (vl *VerifierDA) AddUpdateVerifier(verifier data.Verifier) (int64, error) {
 		return data.UpdateVerifier(&verifier, vl.db)
 	}
 	return data.AddNewVerifier(&verifier, vl.db)
+}
+
+func (vl *VerifierDA) AddUpdateVerifiers(verifiers []data.Verifier) (int64, error) {
+	var err error
+	var rowsAffected int64
+	for _, verifier := range verifiers {
+		if rowsAffected, err = vl.AddUpdateVerifier(verifier); err != nil {
+			return 0, err
+		}
+	}
+	return rowsAffected, nil
 }

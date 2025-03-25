@@ -7,6 +7,7 @@ type Verifier struct {
 	Ip            string
 	Port          string
 	PublicKeySig  string
+	PublicKeyKem  string
 	SigScheme     string
 	SymmetricKey  string
 	TrustScore    float64
@@ -15,7 +16,7 @@ type Verifier struct {
 
 func AddNewVerifier(v *Verifier, db *sql.DB) (int64, error) {
 
-	result, err := db.Exec("INSERT INTO verifiers (Ip, Port, Public_Key_Sig, Sig_Scheme, Symmetric_Key, Trust_Score, Is_In_Committee) VALUES (?, ?, ?, ?, ?, ?, ?)", v.Ip, v.Port, v.PublicKeySig, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee)
+	result, err := db.Exec("INSERT INTO verifiers (Ip, Port, Public_Key_Sig,Public_Key_Kem, Sig_Scheme, Symmetric_Key, Trust_Score, Is_In_Committee) VALUES (?, ?, ?, ?, ?, ?, ?,?)", v.Ip, v.Port, v.PublicKeySig, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee)
 	if err != nil {
 		return 0, err
 	}
@@ -31,7 +32,7 @@ func GetVerifiers(db *sql.DB) ([]Verifier, error) {
 	verifiers := []Verifier{}
 	for rows.Next() {
 		var verifier Verifier
-		if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+		if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 			return nil, err
 		}
 		verifiers = append(verifiers, verifier)
@@ -39,24 +40,24 @@ func GetVerifiers(db *sql.DB) ([]Verifier, error) {
 	return verifiers, nil
 }
 
-func GetVerifier(db *sql.DB, id int) (Verifier, error) {
+func GetVerifier(db *sql.DB, id int64) (Verifier, error) {
 	var verifier Verifier
 	rows := db.QueryRow("SELECT * FROM verifiers WHERE Id = ?", id)
-	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 		return verifier, err
 	}
 	return verifier, nil
 }
 
 func UpdateVerifier(v *Verifier, db *sql.DB) (int64, error) {
-	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?, Public_Key_Sig = ?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Id = ?", v.Ip, v.Port, v.PublicKeySig, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.Id)
+	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?, Public_Key_Sig = ?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Id = ?", v.Ip, v.Port, v.PublicKeySig, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.Id)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func RemoveVerifier(db *sql.DB, id int) (int64, error) {
+func RemoveVerifier(db *sql.DB, id int64) (int64, error) {
 	result, err := db.Exec("DELETE FROM verifiers WHERE Id = ?", id)
 	if err != nil {
 		return 0, err
@@ -67,7 +68,7 @@ func RemoveVerifier(db *sql.DB, id int) (int64, error) {
 func GetVerifierByPublicKeySig(db *sql.DB, publicKeySig string) (Verifier, error) {
 	var verifier Verifier
 	rows := db.QueryRow("SELECT * FROM verifiers WHERE Public_Key_Sig = ?", publicKeySig)
-	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 		return verifier, err
 	}
 	return verifier, nil
@@ -76,7 +77,7 @@ func GetVerifierByPublicKeySig(db *sql.DB, publicKeySig string) (Verifier, error
 func GetVerifierByIp(db *sql.DB, ip string) (Verifier, error) {
 	var verifier Verifier
 	rows := db.QueryRow("SELECT * FROM verifiers WHERE Ip = ?", ip)
-	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 		return verifier, err
 	}
 	return verifier, nil
@@ -85,7 +86,7 @@ func GetVerifierByIp(db *sql.DB, ip string) (Verifier, error) {
 func GetVerifierByIpAndPort(db *sql.DB, ip string, port string) (Verifier, error) {
 	var verifier Verifier
 	rows := db.QueryRow("SELECT * FROM verifiers WHERE Ip = ? AND Port = ?", ip, port)
-	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 		return verifier, err
 	}
 	return verifier, nil
@@ -99,7 +100,7 @@ func GetVerifiersInCommittee(db *sql.DB) ([]Verifier, error) {
 	}
 	for rows.Next() {
 		var verifier Verifier
-		if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
+		if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKeySig, &verifier.PublicKeyKem, &verifier.SigScheme, &verifier.SymmetricKey, &verifier.TrustScore, &verifier.IsInCommittee); err != nil {
 			return nil, err
 		}
 		verifiers = append(verifiers, verifier)

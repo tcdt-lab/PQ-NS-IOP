@@ -1,4 +1,4 @@
-package key_distribution
+package gv_key_distribution
 
 import (
 	"database/sql"

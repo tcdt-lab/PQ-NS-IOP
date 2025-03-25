@@ -17,6 +17,7 @@ CREATE TABLE verifiers (
     ip VARCHAR(30) NOT NULL,
     port VARCHAR(6) NOT NULL,
     public_key_sig TEXT NOT NULL,
+    public_key_kem TEXT NOT NULL,
     sig_scheme VARCHAR(30) NOT NULL,
     symmetric_key TEXT,
     trust_Score double,
