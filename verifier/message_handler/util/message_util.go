@@ -1,7 +1,9 @@
 package util
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/binary"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"os"
@@ -29,4 +31,13 @@ func GetUserInformation(db *sql.DB, c config.Config) (data.VerifierUser, error) 
 	}
 	return verifeirUser, nil
 
+}
+
+func GenerateRequestNumber() (int64, error) {
+	var requestNumber int64
+	err := binary.Read(rand.Reader, binary.LittleEndian, &requestNumber)
+	if err != nil {
+		return 0, err
+	}
+	return requestNumber, nil
 }

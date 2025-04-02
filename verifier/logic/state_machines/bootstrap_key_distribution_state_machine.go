@@ -106,7 +106,7 @@ func (sm *BoostrapKeyDistroStateMachine) Transit() error {
 func (sm *BoostrapKeyDistroStateMachine) SetIsTraversalMode(isTraversalMode bool) {
 	sm.IsTraversalMode = isTraversalMode
 }
-func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKeyDistroStateMachine {
+func GenerateKeyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKeyDistroStateMachine {
 
 	zap.L().Info("Generating bootstrap state machine", zap.Int64("requestId", requestId))
 	sm := BoostrapKeyDistroStateMachine{}
@@ -140,7 +140,7 @@ func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 		Action: func(T any) error {
 			//here T contains request Id
 
-			msgBytes,err := vv_key_distribution.CreateKeyDistributionRequest(cfg, sm.RequestId, sm.db)
+			msgBytes, err := vv_key_distribution.CreateKeyDistributionRequest(cfg, sm.RequestId, sm.db)
 			if msgBytes == nil {
 				zap.L().Error("Error in generating key distribution message ", zap.Error(err))
 				return errors.New("Error in generating message")
@@ -194,12 +194,12 @@ func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 				if err != nil {
 					return err
 				}
-				msgData,_,err := message_handler.ParseRequest(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
+				msgData, _, err := message_handler.ParseRequest(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
 				if err != nil {
 					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
 				}
-				err = vv_key_distribution.ApplyKeyDistributionResponse(msgData, sm.db,cfg)
+				err = vv_key_distribution.ApplyKeyDistributionResponse(msgData, sm.db, cfg)
 				if err != nil {
 					zap.L().Error("Error in applying response from verifier", zap.Error(err))
 					return err
