@@ -31,6 +31,9 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 	gob.Register(verifier_verifier.VVerifierKeyDistributionResponse{})
 	gob.Register(verifier_verifier.VVInitInfoOperationRequest{})
 	gob.Register(verifier_verifier.VVInitInfoOperationResponse{})
+	gob.Register(verifier_verifier.VVSyncInfoStructureVerifier{})
+	gob.Register(verifier_verifier.VVSyncInfoOperationRequest{})
+	gob.Register(verifier_verifier.VVSyncInfoOperationResponse{})
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message
