@@ -44,11 +44,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	PhaseOneHander(err, db)
+	if isBootstrapNodeAvailable(config) {
+		PhaseOneHandler(err, db)
+	}
 	network.StartServer(config, db)
 }
 
-func PhaseOneHander(err error, db *sql.DB) {
+func isBootstrapNodeAvailable(c *config.Config) bool {
+	if c.BootstrapNode.Ip != "none" && c.BootstrapNode.Port != "none" {
+		return true
+	}
+	return false
+}
+
+func PhaseOneHandler(err error, db *sql.DB) {
 	reqId, err := util.GenerateRequestNumber()
 	if err != nil {
 		zap.L().Error("Error while generating request number", zap.Error(err))

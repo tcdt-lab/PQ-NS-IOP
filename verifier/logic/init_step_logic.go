@@ -44,14 +44,18 @@ func InitStepLogic(db *sql.DB) (int64, int64, error) {
 	if err != nil {
 		return 0, 0, err
 	}
+	bootstrapId := int64(-1)
 
-	bootstrapVerfier.Ip = c.BootstrapNode.Ip
-	bootstrapVerfier.Port = c.BootstrapNode.Port
-	bootstrapVerfier.PublicKeySig = c.BootstrapNode.PubKeySig
+	if c.BootstrapNode.Ip != "none" && c.BootstrapNode.Port != "none" {
+		bootstrapVerfier.Ip = c.BootstrapNode.Ip
+		bootstrapVerfier.Port = c.BootstrapNode.Port
+		bootstrapVerfier.PublicKeySig = c.BootstrapNode.PubKeySig
 
-	bootstrapId, err := verifierDataAccess.AddVerifier(bootstrapVerfier)
-	if err != nil {
-		return 0, 0, err
+		bootstrapId, err = verifierDataAccess.AddVerifier(bootstrapVerfier)
+		if err != nil {
+			return 0, 0, err
+		}
 	}
+
 	return adminId, bootstrapId, nil
 }
