@@ -20,7 +20,7 @@ func CreateGatewayVerifierKeyDistributionResponse(cipherTextStr string, db *sql.
 
 	vuda := data_access.GenerateVerifierUserDA(db)
 
-	cacheHandler := data_access.NewCacheHandlerDA()
+	cacheHandler := data_access.GenerateCacheHandlerDA()
 	adminId, _ := cacheHandler.GetUserAdminId()
 	vuda.GetVerifierUser(adminId)
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)

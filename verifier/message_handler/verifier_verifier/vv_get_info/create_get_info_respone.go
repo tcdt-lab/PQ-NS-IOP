@@ -10,7 +10,7 @@ import (
 	"verifier/message_handler/util"
 )
 
-func CreateGetInfoResponse(c *config.Config, requestId int64, db *sql.DB, senderIp string, senderPort string) ([]byte, error) {
+func CreateGetInfoResponse(c *config.Config, requestId int64, db *sql.DB, senderPubKey string) ([]byte, error) {
 	msgUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	var msgInfo = pkg.MessageInfo{}
 	var msg = pkg.Message{}
@@ -18,13 +18,14 @@ func CreateGetInfoResponse(c *config.Config, requestId int64, db *sql.DB, sender
 	var resp verifier_verifier.VVInitInfoOperationResponse
 	resp.RequestId = requestId
 	veriferDataAccess := data_access.GenerateVerifierDA(db)
-	desitantionVerifier, err := veriferDataAccess.GetVerifierByIpAndPort(senderIp, senderPort)
+	desitantionVerifier, err := veriferDataAccess.GetVerifierByPublicKeySig(senderPubKey)
 	gatewayDataAccess := data_access.GenerateGatewayDA(db)
-	cachHandler := data_access.NewCacheHandlerDA()
-
+	cachHandler := data_access.GenerateCacheHandlerDA()
+	vuda := data_access.GenerateVerifierUserDA(db)
 	adminId, _ := cachHandler.GetUserAdminId()
-	adminVerifier, err := veriferDataAccess.GetVerifier(adminId)
-	resp.CurrentVerifierInfo = formatVerifier(adminVerifier)
+	adminVerifier, err := vuda.GetVerifierUser(adminId)
+
+	resp.CurrentVerifierInfo = formatVerifierUser(adminVerifier, *c)
 
 	gateways, err := gatewayDataAccess.GetGateways()
 	if err != nil {
@@ -50,9 +51,22 @@ func CreateGetInfoResponse(c *config.Config, requestId int64, db *sql.DB, sender
 	msgInfoStrEnc, _, err := msgUtil.EncryptMessageInfo(msgInfoByte, desitantionVerifier.SymmetricKey)
 	msg.MsgInfo = msgInfoStrEnc
 	msg.Hmac = hmacStr
+	msg.PublicKeySig = adminVerifier.PublicKeySig
 	msg.IsEncrypted = true
 	msgBytes, err := msgUtil.ConvertMessageToByte(msg)
 	return msgBytes, nil
+}
+
+func formatVerifierUser(verifier data.VerifierUser, c config.Config) verifier_verifier.VVInitInfoStructureVerifier {
+	var inintInfoVerifier = verifier_verifier.VVInitInfoStructureVerifier{}
+	inintInfoVerifier.VerifierPort = c.Server.Port
+	inintInfoVerifier.VerifierIpAddress = c.Server.Ip
+	inintInfoVerifier.VerifierPublicKeySignature = verifier.PublicKeySig
+	inintInfoVerifier.SigScheme = c.Security.DSAScheme
+	inintInfoVerifier.VerifierPublicKeyKem = verifier.PublicKeyKem
+	inintInfoVerifier.TrustScore = 0
+	inintInfoVerifier.IsInCommittee = false
+	return inintInfoVerifier
 }
 
 func formatVerifier(verifiers data.Verifier) verifier_verifier.VVInitInfoStructureVerifier {

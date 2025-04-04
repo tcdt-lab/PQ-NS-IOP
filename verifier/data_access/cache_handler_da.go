@@ -10,7 +10,7 @@ type CacheHandlerDA struct {
 	client *redis.Client
 }
 
-func NewCacheHandlerDA() *CacheHandlerDA {
+func GenerateCacheHandlerDA() *CacheHandlerDA {
 	client, err := getRedisConnection()
 	if err != nil {
 		return nil

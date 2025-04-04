@@ -15,7 +15,7 @@ func CreateKeyDistributionRequest(c *config.Config, requestId int64, db *sql.DB)
 	msg := pkg.Message{}
 	msgInfo := pkg.MessageInfo{}
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
-	cacheHandlerDa := data_access.NewCacheHandlerDA()
+	cacheHandlerDa := data_access.GenerateCacheHandlerDA()
 	verifierUerDa := data_access.GenerateVerifierUserDA(db)
 
 	adminId, err := cacheHandlerDa.GetUserAdminId()
@@ -32,8 +32,8 @@ func CreateKeyDistributionRequest(c *config.Config, requestId int64, db *sql.DB)
 	vvKeyDistributionReq.VerifierIP = c.Server.Ip
 	vvKeyDistributionReq.VerifierPort = c.Server.Port
 	vvKeyDistributionReq.VerifierSignatureScheme = c.Security.DSAScheme
-	vvKeyDistributionReq.VerifierPublicKeySignature = verifierUer.SecretKeySig
-	vvKeyDistributionReq.VerifierPublicKeyKem = verifierUer.SecretKeyKem
+	vvKeyDistributionReq.VerifierPublicKeySignature = verifierUer.PublicKeySig
+	vvKeyDistributionReq.VerifierPublicKeyKem = verifierUer.PublicKeyKem
 	vvKeyDistributionReq.VerifierKemScheme = c.Security.KEMScheme
 
 	msgInfo.OperationTypeId = pkg.VERIFIER_VERIFIER_KEY_DISTRIBUTION_OPERATION_REQUEST_ID

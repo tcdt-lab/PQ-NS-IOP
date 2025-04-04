@@ -15,7 +15,7 @@ func ApplyKeyDistributionRequest(db *sql.DB, c *config.Config, msgInfo pkg.Messa
 
 	vud := data_access.GenerateVerifierUserDA(db)
 	VDa := data_access.GenerateVerifierDA(db)
-	cachHandler := data_access.NewCacheHandlerDA()
+	cachHandler := data_access.GenerateCacheHandlerDA()
 	adminId, _ := cachHandler.GetUserAdminId()
 	verifierUser, _ := vud.GetVerifierUser(adminId)
 	util := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)

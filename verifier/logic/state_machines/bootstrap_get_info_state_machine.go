@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	b64 "encoding/base64"
 	"errors"
-	"gateway/message_handler/get_init_information"
 	"go.uber.org/zap"
 	"verifier/config"
 	"verifier/data_access"
@@ -126,7 +125,7 @@ func GenerateBootstrapGentInfoStateMachine(requestId int64, database *sql.DB) Bo
 	sm.ReverseStatesMap = make(map[*State]*State)
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewFsmDA()
-	cacheHandler := data_access.NewCacheHandlerDA()
+	cacheHandler := data_access.GenerateCacheHandlerDA()
 	var vDa = data_access.GenerateVerifierDA(database)
 
 	cfg, err := config.ReadYaml()
@@ -211,7 +210,7 @@ func GenerateBootstrapGentInfoStateMachine(requestId int64, database *sql.DB) Bo
 					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
 				}
-				err = get_init_information.ApplyGatewayVerifierGetInfoResponse(msgData, sm.db)
+				err = vv_get_info.ApplyGetInfoResponse(msgData, sm.db, cfg)
 				if err != nil {
 					zap.L().Error("Error in applying response from verifier", zap.Error(err))
 					return err

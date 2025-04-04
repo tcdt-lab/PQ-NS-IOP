@@ -19,6 +19,7 @@ func ApplyGatewayVerifierGetInfoResponse(msgInfo pkg.MessageInfo, db *sql.DB) er
 	gvGetInfoRes := msgInfo.Params.(gateway_verifier.GatewayVerifierInitInfoOperationResponse)
 	gatewaysList := extractGatewaysInfo(gvGetInfoRes)
 	verifiersList := extractVerifiersInfo(gvGetInfoRes, bootstrapVerifier.SymmetricKey)
+	senderVerifier := extractSenderVerifier(gvGetInfoRes, bootstrapVerifier.SymmetricKey)
 	err = gDA.AddUpdateGateways(gatewaysList)
 	if err != nil {
 		return err
@@ -27,7 +28,18 @@ func ApplyGatewayVerifierGetInfoResponse(msgInfo pkg.MessageInfo, db *sql.DB) er
 	if err != nil {
 		return err
 	}
+	err = vDA.AddUpdateVerifier(senderVerifier)
 	return nil
+}
+
+func extractSenderVerifier(res gateway_verifier.GatewayVerifierInitInfoOperationResponse, symmetricKey string) data.Verifier {
+	verifier := data.Verifier{
+		Ip:           res.CurrentVerifierInfo.VerifierIpAddress,
+		Port:         res.CurrentVerifierInfo.VerifierPort,
+		PublicKey:    res.CurrentVerifierInfo.VerifierPublicKeyKem,
+		SymmetricKey: symmetricKey,
+	}
+	return verifier
 }
 
 func extractGatewaysInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoOperationResponse) []data.Gateway {

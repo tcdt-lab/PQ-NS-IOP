@@ -14,7 +14,7 @@ func CreateKeyDistributionResponse(db *sql.DB, c *config.Config, cipherText stri
 	msg := pkg.Message{}
 	msgInfo := pkg.MessageInfo{}
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
-	cacheHandlerDa := data_access.NewCacheHandlerDA()
+	cacheHandlerDa := data_access.GenerateCacheHandlerDA()
 	userDa := data_access.GenerateVerifierUserDA(db)
 	adminId, err := cacheHandlerDa.GetUserAdminId()
 	if err != nil {

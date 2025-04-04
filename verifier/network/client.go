@@ -2,6 +2,7 @@ package network
 
 import (
 	"bytes"
+	"io"
 	"net"
 	data "verifier/data"
 )
@@ -61,22 +62,23 @@ func SendToVerifier(verifier data.Verifier, encryptedMsg []byte) error {
 	return nil
 }
 
-func SendAndAwaitReplyToVerifier(verifier data.Verifier, encryptedMsg []byte) ([]byte, error) {
+func SendAndAwaitReplyToVerifier(verifier data.Verifier, msg []byte) ([]byte, error) {
 
-	//socket client to send the encryptedMsg to the verifier_verifier
-	conn, err := net.Dial("tcp", verifier.Ip+":"+verifier.Port)
+	tcpAdr, _ := net.ResolveTCPAddr("tcp", verifier.Ip+":"+verifier.Port)
+	conn, err := net.DialTCP("tcp", nil, tcpAdr)
 	if err != nil {
 		return nil, err
 	}
-	_, err = conn.Write(encryptedMsg)
+	_, err = conn.Write(msg)
 	defer conn.Close()
 
+	conn.CloseWrite()
 	var response bytes.Buffer
 
 	buffer := make([]byte, 1024)
 	for {
 		n, err := conn.Read(buffer)
-		if err.Error() == "EOF" {
+		if err == io.EOF {
 			break
 		} else if err != nil {
 			return nil, err
@@ -87,5 +89,6 @@ func SendAndAwaitReplyToVerifier(verifier data.Verifier, encryptedMsg []byte) ([
 		}
 
 	}
+
 	return response.Bytes(), nil
 }

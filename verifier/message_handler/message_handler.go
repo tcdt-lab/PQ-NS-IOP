@@ -69,14 +69,16 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
+		return response, nil
 
 	case pkg.VERIFIER_VERIFIER_GET_INFO_OPERATION_REQEST_ID:
 		zap.L().Info("Handling Get Info Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
-		response, err = mp.VV_HanldeGetInfoResponse(msgInfo.RequestId, senderIp, senderPort, cfg)
+		response, err = mp.VV_HanldeGetInfoResponse(msgInfo.RequestId, senderPubKey, cfg)
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
 	}
+	return response, nil
 	errOperation := errors.New("Operation type not found")
 	return mp.GenerateGeneralErrorResponse(errOperation, *cfg), errOperation
 }
@@ -150,9 +152,9 @@ func (mp *MessageHandler) VV_HandleKeyDistributionResponse(msgData pkg.MessageIn
 	return res, nil
 }
 
-func (mp *MessageHandler) VV_HanldeGetInfoResponse(reqId int64, senderIp string, senderPort string, config *config.Config) ([]byte, error) {
+func (mp *MessageHandler) VV_HanldeGetInfoResponse(reqId int64, senderPubKey string, config *config.Config) ([]byte, error) {
 
-	res, err := vv_get_info.CreateGetInfoResponse(config, reqId, mp.db, senderIp, senderPort)
+	res, err := vv_get_info.CreateGetInfoResponse(config, reqId, mp.db, senderPubKey)
 	if err != nil {
 		zap.L().Error("Error while creating get info response", zap.Error(err))
 		return nil, err

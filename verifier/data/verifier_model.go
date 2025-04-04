@@ -50,7 +50,7 @@ func GetVerifier(db *sql.DB, id int64) (Verifier, error) {
 }
 
 func UpdateVerifier(v *Verifier, db *sql.DB) (int64, error) {
-	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?, Public_Key_Sig = ?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Id = ?", v.Ip, v.Port, v.PublicKeySig, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.Id)
+	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Public_Key_Sig = ?", v.Ip, v.Port, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.PublicKeySig)
 	if err != nil {
 		return 0, err
 	}
@@ -112,6 +112,15 @@ func GetVerifiersInCommittee(db *sql.DB) ([]Verifier, error) {
 func IfVerifierExists(db *sql.DB, verifier Verifier) (bool, error) {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM verifiers WHERE Ip = ? AND Port = ?", verifier.Ip, verifier.Port).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func IfVerifierExistByPublicKeySig(db *sql.DB, pubKey string) (bool, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM verifiers WHERE Public_Key_Sig = ?", pubKey).Scan(&count)
 	if err != nil {
 		return false, err
 	}

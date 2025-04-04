@@ -114,7 +114,7 @@ func GenerateKeyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 	sm.ReverseStatesMap = make(map[*State]*State)
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewFsmDA()
-	cacheHandler := data_access.NewCacheHandlerDA()
+	cacheHandler := data_access.GenerateCacheHandlerDA()
 	var vDa = data_access.GenerateVerifierDA(databse)
 
 	cfg, err := config.ReadYaml()
@@ -194,12 +194,12 @@ func GenerateKeyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 				if err != nil {
 					return err
 				}
-				msgData, _, err := message_handler.ParseRequest(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
+				msgData, senderPubKey, err := message_handler.ParseRequest(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
 				if err != nil {
 					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
 				}
-				err = vv_key_distribution.ApplyKeyDistributionResponse(msgData, sm.db, cfg)
+				err = vv_key_distribution.ApplyKeyDistributionResponse(msgData, senderPubKey, sm.db, cfg)
 				if err != nil {
 					zap.L().Error("Error in applying response from verifier", zap.Error(err))
 					return err

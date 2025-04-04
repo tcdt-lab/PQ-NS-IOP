@@ -14,6 +14,17 @@ func CreateGetInfoRequest(c *config.Config, requestId int64, db *sql.DB) ([]byte
 	var req verifier_verifier.VVInitInfoOperationRequest
 	req.RequestId = requestId
 	veriferDataAccess := data_access.GenerateVerifierDA(db)
+	cacheHandlerDa := data_access.GenerateCacheHandlerDA()
+	verifierUerDa := data_access.GenerateVerifierUserDA(db)
+	adminId, err := cacheHandlerDa.GetUserAdminId()
+	if err != nil {
+		return nil, err
+	}
+	verifierUer, err := verifierUerDa.GetVerifierUser(adminId)
+	if err != nil {
+		return nil, err
+	}
+
 	boostrapVerifier, err := veriferDataAccess.GetVerifierByIpAndPort(c.BootstrapNode.Ip, c.BootstrapNode.Port)
 	if err != nil {
 		return nil, err
@@ -28,6 +39,7 @@ func CreateGetInfoRequest(c *config.Config, requestId int64, db *sql.DB) ([]byte
 		return nil, err
 	}
 	msg.Signature = ""
+	msg.PublicKeySig = verifierUer.PublicKeySig
 	hmacStr, _, _ := msgUtil.GenerateHmacMsgInfo(msgInfoByte, boostrapVerifier.SymmetricKey)
 	msgInfoStrEnc, _, err := msgUtil.EncryptMessageInfo(msgInfoByte, boostrapVerifier.SymmetricKey)
 	msg.MsgInfo = msgInfoStrEnc

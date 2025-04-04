@@ -20,7 +20,7 @@ func CreateSyncInfoRequest(c *config.Config, requestId int64, destinationIp stri
 	veriferDataAccess := data_access.GenerateVerifierDA(db)
 	desitantionVerifier, err := veriferDataAccess.GetVerifierByIpAndPort(destinationIp, destinationPort)
 	gatewayDataAccess := data_access.GenerateGatewayDA(db)
-	cachHandler := data_access.NewCacheHandlerDA()
+	cachHandler := data_access.GenerateCacheHandlerDA()
 
 	adminId, _ := cachHandler.GetUserAdminId()
 	adminVerifier, err := veriferDataAccess.GetVerifier(adminId)

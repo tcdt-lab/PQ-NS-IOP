@@ -77,3 +77,16 @@ func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
 	}
 	return nil
 }
+
+func (vl *VerifierDA) AddUpdateVerifier(verifier data.Verifier) error {
+	if exist, _ := data.IfVerifierExistsWithIPandPort(vl.db, verifier); exist {
+		if _, err := data.UpdateVerifier(vl.db, verifier); err != nil {
+			return err
+		}
+	} else {
+		if _, err := data.AddVerifier(vl.db, verifier); err != nil {
+			return err
+		}
+	}
+	return nil
+}

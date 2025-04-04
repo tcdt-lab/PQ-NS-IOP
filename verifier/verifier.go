@@ -30,12 +30,19 @@ func main() {
 	defer logger.Sync()
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
-	adminId, bootstrapId, err := logic.InitStepLogic(db)
-	if err != nil {
-		zap.L().Error("Error while generating keys", zap.Error(err))
-		os.Exit(1)
+
+	cacheHandler := data_access.GenerateCacheHandlerDA()
+	adminId, err := cacheHandler.GetUserAdminId()
+	bootstrapId, err := cacheHandler.GetBootstrapVerifierId()
+	if adminId == -1 {
+		adminId, bootstrapId, err = logic.InitStepLogic(db)
+		if err != nil {
+			zap.L().Error("Error while generating keys", zap.Error(err))
+			os.Exit(1)
+		}
+	} else {
+		zap.L().Info("Admin and Bootstrap already exists", zap.Int64("BootstrapId", bootstrapId), zap.Int64("AdminId", adminId))
 	}
-	cacheHandler := data_access.NewCacheHandlerDA()
 	cacheHandler.SetUserAdminId(adminId)
 	cacheHandler.SetBootstrapVerifierId(bootstrapId)
 

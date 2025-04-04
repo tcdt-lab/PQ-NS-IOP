@@ -81,7 +81,7 @@ func (vuda *VerifierUserDA) SetUpAdminVerifierUser(publicKeyKem string, secKeyKe
 
 func (vuda *VerifierUserDA) GetAdminVerifierUser() (data.VerifierUser, error) {
 
-	cacheHandler := NewCacheHandlerDA()
+	cacheHandler := GenerateCacheHandlerDA()
 	adminId, err := cacheHandler.GetUserAdminId()
 	if err != nil {
 		zap.L().Error("Error while getting admin id", zap.Error(err))

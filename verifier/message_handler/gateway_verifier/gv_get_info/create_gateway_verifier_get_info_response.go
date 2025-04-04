@@ -22,6 +22,7 @@ func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql
 	gvGetInfoResponse := gateway_verifier.GatewayVerifierInitInfoOperationResponse{}
 	gvVerifier := []gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}
 	gvGateways := []gateway_verifier.GatewayVerifierInitInfoStructureGateway{}
+	currentVerifierInfo := gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}
 	senderGt, err := gDa.GetGatewayByPublicKeySig(pubKeySender)
 	if err != nil {
 		return nil, err
@@ -40,7 +41,13 @@ func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql
 	if err != nil {
 		return nil, err
 	}
+
+	currentVerifierInfo, err = fillCurrentVerifierInfo(db, *cfg)
+	if err != nil {
+		return nil, err
+	}
 	gvGetInfoResponse.VerifiersList = gvVerifier
+	gvGetInfoResponse.CurrentVerifierInfo = currentVerifierInfo
 	gvGetInfoResponse.RequestId = reqId
 	msgInfo.Params = gvGetInfoResponse
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_GET_INFO_OPERATION_RESPONSE
@@ -62,6 +69,29 @@ func CreateGateVerifierGetInfoResponse(pubKeySender string, reqId int64, db *sql
 		return nil, err
 	}
 	return msgBytes, nil
+}
+
+func fillCurrentVerifierInfo(db *sql.DB, c config.Config) (gateway_verifier.GatewayVerifierInitInfoStructureVerifier, error) {
+	vuda := data_access.GenerateVerifierUserDA(db)
+	cacheHandler := data_access.GenerateCacheHandlerDA()
+	adminId, err := cacheHandler.GetUserAdminId()
+	if err != nil {
+		return gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}, err
+	}
+	verifierUser, err := vuda.GetVerifierUser(adminId)
+	if err != nil {
+		return gateway_verifier.GatewayVerifierInitInfoStructureVerifier{}, err
+	}
+	currentVerifierInfo := gateway_verifier.GatewayVerifierInitInfoStructureVerifier{
+		VerifierIpAddress:          c.Server.Ip,
+		VerifierPort:               c.Server.Port,
+		VerifierPublicKeySignature: verifierUser.PublicKeySig,
+		SigScheme:                  c.Security.DSAScheme,
+		VerifierPublicKeyKem:       verifierUser.PublicKeyKem,
+		TrustScore:                 0,
+		IsInCommittee:              false,
+	}
+	return currentVerifierInfo, nil
 }
 
 func fillGateways(gatewaysStruct []gateway_verifier.GatewayVerifierInitInfoStructureGateway, db *sql.DB) ([]gateway_verifier.GatewayVerifierInitInfoStructureGateway, error) {

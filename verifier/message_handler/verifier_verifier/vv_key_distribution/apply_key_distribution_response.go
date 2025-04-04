@@ -9,11 +9,11 @@ import (
 	"verifier/message_handler/util"
 )
 
-func ApplyKeyDistributionResponse(msgInfo pkg.MessageInfo, db *sql.DB, c *config.Config) error {
+func ApplyKeyDistributionResponse(msgInfo pkg.MessageInfo, senderPubKey string, db *sql.DB, c *config.Config) error {
 
 	vud := data_access.GenerateVerifierUserDA(db)
 	VDa := data_access.GenerateVerifierDA(db)
-	cachHandler := data_access.NewCacheHandlerDA()
+	cachHandler := data_access.GenerateCacheHandlerDA()
 	adminId, _ := cachHandler.GetUserAdminId()
 	verifierUser, _ := vud.GetVerifierUser(adminId)
 	util := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
@@ -26,7 +26,8 @@ func ApplyKeyDistributionResponse(msgInfo pkg.MessageInfo, db *sql.DB, c *config
 		return err
 	}
 	bootstrapVerifier.SymmetricKey = util.AesHandler.ConvertKeyBytesToStr64(sharedKey)
-	_, err = VDa.UpdateVerifier(bootstrapVerifier)
+	bootstrapVerifier.PublicKeySig = senderPubKey
+	_, err = VDa.AddUpdateVerifier(bootstrapVerifier)
 	if err != nil {
 		return err
 	}
