@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/gob"
 	"go.uber.org/zap"
+	"test.org/protocol/pkg/gateway_gateway"
 	"test.org/protocol/pkg/gateway_verifier"
 	"test.org/protocol/pkg/verifier_verifier"
 
@@ -21,12 +22,21 @@ type ProtocolUtil struct {
 
 func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 	gob.Register(ErrorParams{})
+
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionRequest{})
 	gob.Register(gateway_verifier.GatewayVerifierKeyDistributionResponse{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoStructureVerifier{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoStructureGateway{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationResponse{})
 	gob.Register(gateway_verifier.GatewayVerifierInitInfoOperationRequest{})
+	gob.Register(gateway_verifier.GatewayVerifierTicketRequest{})
+	gob.Register(gateway_verifier.GatewayVerifierTicketResponse{})
+	gob.Register(gateway_verifier.VerificationRequest{})
+	gob.Register(gateway_verifier.VerificationResponse{})
+
+	gob.Register(gateway_gateway.BalanceCheckRequest{})
+	gob.Register(gateway_gateway.BalanceCheckResponse{})
+
 	gob.Register(verifier_verifier.VVerifierKeyDistributionRequest{})
 	gob.Register(verifier_verifier.VVerifierKeyDistributionResponse{})
 	gob.Register(verifier_verifier.VVInitInfoOperationRequest{})
@@ -34,6 +44,7 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 	gob.Register(verifier_verifier.VVSyncInfoStructureVerifier{})
 	gob.Register(verifier_verifier.VVSyncInfoOperationRequest{})
 	gob.Register(verifier_verifier.VVSyncInfoOperationResponse{})
+
 }
 
 // VerifyMessageDataSignature Gets A message and verifies the signature of the message

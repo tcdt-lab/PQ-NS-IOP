@@ -4,14 +4,22 @@ go 1.23.2
 
 require (
 	github.com/cloudflare/circl v1.5.0
+	 github.com/iden3/go-rapidsnark/prover v0.0.13
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1
 	test.org/cryptography v0.0.0-00010101000000-000000000000
+
+
+
+
 )
 
 require (
+	github.com/iden3/go-iden3-crypto v0.0.15 // indirect
+    github.com/iden3/go-rapidsnark/types v0.0.3 // indirect
+    github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

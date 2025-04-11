@@ -13,6 +13,7 @@ type Config struct {
 	User          User          `yaml:"User"`
 	Trust         Trust         `yaml:"Trust"`
 	BootstrapNode BootstrapNode `yaml:"Bootstrap_Node"`
+	ZKP           ZKP           `yaml:"ZKP"`
 	// Ensure this matches the YAML key
 }
 
@@ -52,6 +53,10 @@ type Trust struct {
 	ScoreScheme            string  `yaml:"score_scheme"`
 	BaselineDiscountFactor float64 `yaml:"baseline_discount_factor"`
 	ExponentAdjustment     float64 `yaml:"exponent_adjustment"`
+}
+
+type ZKP struct {
+	VerificationKeyPath string `yaml:"verification_key_path"`
 }
 
 func ReadYaml() (*Config, error) {

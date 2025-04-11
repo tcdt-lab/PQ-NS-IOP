@@ -69,6 +69,22 @@ func PhaseOneExecute(db *sql.DB) {
 
 }
 
+func BalanceCheckStart(db *sql.DB) {
+	zap.L().Info("Balance Check Execution Started")
+	reqNum, err := util.GenerateRequestNumber()
+	if err != nil {
+		zap.L().Error("Error while generating request number", zap.Error(err))
+		os.Exit(1)
+	}
+	balanceCheckStateMachine := state_machines.GenerateBalanceCheckStateMachine(reqNum, "127.0.0.1", "50090", db)
+	balanceCheckStateMachine.Transit()
+	if err != nil {
+		zap.L().Error("Error while generating request number", zap.Error(err))
+		os.Exit(1)
+	}
+	zap.L().Info("Balance Check State Machine Completed")
+
+}
 func getConfig() (config.Config, error) {
 	cfg, err := config.ReadYaml()
 	return *cfg, err

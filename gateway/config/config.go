@@ -13,6 +13,7 @@ type Config struct {
 	User          User          `yaml:"User"`
 	BootstrapNode BootstrapNode `yaml:"Bootstrap_Node"`
 	Client        Client        `yaml:"Client"`
+	ZKP           ZKP           `yaml:"ZKP"`
 	// Ensure this matches the YAML key
 }
 
@@ -51,6 +52,11 @@ type BootstrapNode struct {
 	Port      string `yaml:"port"`
 	PubKeySig string `yaml:"pub_key_sig"`
 	PubKeyKem string `yaml:"pub_key_kem"`
+}
+
+type ZKP struct {
+	ProverKeyPath string `yaml:"prover_key_path"`
+	WitnessPath   string `yaml:"witness_path"`
 }
 
 func ReadYaml() (*Config, error) {

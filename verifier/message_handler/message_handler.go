@@ -8,8 +8,10 @@ import (
 	"os"
 	"strconv"
 	"test.org/protocol/pkg"
+	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/message_handler/gateway_verifier/gv_get_info"
 	key_distribution2 "verifier/message_handler/gateway_verifier/gv_key_distribution"
+	"verifier/message_handler/gateway_verifier/gv_ticket_issue"
 	"verifier/message_handler/util"
 	"verifier/message_handler/verifier_verifier/vv_get_info"
 	"verifier/message_handler/verifier_verifier/vv_key_distribution"
@@ -77,6 +79,10 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 		if err != nil {
 			return mp.GenerateGeneralErrorResponse(err, *cfg), err
 		}
+
+	case pkg.GATEWAT_VERIFIER_TICKET_ISSUE_REQUEST_ID:
+		zap.L().Info("Handling Ticket Issue Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
+		response, err = mp.GV_HandleTicketIssueRequest(msgInfo, senderPubKey, cfg)
 	}
 	return response, nil
 	errOperation := errors.New("Operation type not found")
@@ -157,6 +163,16 @@ func (mp *MessageHandler) VV_HanldeGetInfoResponse(reqId int64, senderPubKey str
 	res, err := vv_get_info.CreateGetInfoResponse(config, reqId, mp.db, senderPubKey)
 	if err != nil {
 		zap.L().Error("Error while creating get info response", zap.Error(err))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (mp *MessageHandler) GV_HandleTicketIssueRequest(info pkg.MessageInfo, key string, cfg *config.Config) ([]byte, error) {
+	ticketRequestParams := info.Params.(gateway_verifier.GatewayVerifierTicketRequest)
+	res, err := gv_ticket_issue.CreateTicketIssueResponse(ticketRequestParams.RequestId, key, ticketRequestParams.DestinationServerIP, ticketRequestParams.DestinationServerPort, mp.db, *cfg)
+	if err != nil {
+		zap.L().Error("Error while creating ticket issue response", zap.Error(err))
 		return nil, err
 	}
 	return res, nil

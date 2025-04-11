@@ -7,6 +7,7 @@ replace test.org/cryptography => /home/koosha/Desktop/PQ-NS-IOP/cryptography_hel
 replace test.org/protocol => /home/koosha/Desktop/PQ-NS-IOP/protocol
 
 require (
+	github.com/iden3/go-rapidsnark/prover v0.0.13
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.27.0
@@ -15,6 +16,9 @@ require (
 )
 
 require (
+    github.com/iden3/go-iden3-crypto v0.0.15 // indirect
+    github.com/iden3/go-rapidsnark/types v0.0.3 // indirect
+    github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
