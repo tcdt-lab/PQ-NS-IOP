@@ -114,7 +114,6 @@ func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewBootstrapFsmDA()
 	cacheHandler := data_access.NewCacheHandlerDA()
-	var vDa = data_access.GenerateVerifierDA(databse)
 
 	cfg, err := config.ReadYaml()
 	if err != nil {
@@ -155,18 +154,14 @@ func GenerateKEyDistroStateMachine(requestId int64, databse *sql.DB) BoostrapKey
 	sendMessageToVerifierState := State{
 		StateName: "send_message_to_verifier",
 		Action: func(T any) error {
-			bootstrapVerifier, err := vDa.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
-			if err != nil {
-				zap.L().Error("Error in getting verifier from database", zap.Error(err))
-				return err
-			}
+
 			data, err := cacheHandler.GetRequestInformation(sm.RequestId, "generatedMsg")
 			if err == nil {
 				msgBytes, err := b64.StdEncoding.DecodeString(data)
 				if err != nil {
 					return err
 				}
-				responseBytes, err := network.SendAndAwaitReplyToVerifier(bootstrapVerifier, msgBytes)
+				responseBytes, err := network.SendAndAwaitReply(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, msgBytes)
 				if err != nil {
 					zap.L().Error("Error in sending message to verifier", zap.Error(err))
 					return err

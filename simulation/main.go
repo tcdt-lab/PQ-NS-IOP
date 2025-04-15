@@ -2,7 +2,7 @@ package main
 
 import (
 	"go.uber.org/zap"
-	"simulation/key_distribution"
+	"simulation/dsa"
 )
 
 func main() {
@@ -11,5 +11,6 @@ func main() {
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
 	//trust.SimulateTrustScoreCalculation()
-	key_distribution.KeyDistibutionSequencial()
+	//key_distribution.KeyDistibutionSequencial()
+	dsa.RunParallelDSA()
 }

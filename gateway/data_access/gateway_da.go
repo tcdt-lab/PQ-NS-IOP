@@ -71,3 +71,11 @@ func (gl *GatewayDA) AddUpdateGateways(gateways []data.Gateway) error {
 	}
 	return nil
 }
+
+func (gl *GatewayDA) IfGatewayExistByPublicKeySig(publicKeySig string) (bool, error) {
+	return data.IfGatewayExistByPubicKeySig(gl.db, publicKeySig)
+}
+
+func (gl *GatewayDA) GetGatewayByPublicKey(publicKey string) (data.Gateway, error) {
+	return data.GetGatewayByPublicKey(gl.db, publicKey)
+}

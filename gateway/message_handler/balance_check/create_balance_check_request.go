@@ -27,7 +27,7 @@ func CreateBalanceCheckRequest(requestId int64, threshold int64, destinationIp s
 
 	msgInfo.Params = balanceCheckRequest
 	msgInfo.RequestId = requestId
-	msgInfo.OperationTypeId = pkg.GATEWAY_GATEWAY_BLANCE_CHECK_REQUEST_ID
+	msgInfo.OperationTypeId = pkg.GATEWAY_GATEWAY_BALANCE_CHECK_REQUEST_ID
 	msgInfo.SourceId = c.Server.Ip + ":" + c.Server.Port
 	msgInfo.DestinationId = destinationIp + ":" + destinationPort
 

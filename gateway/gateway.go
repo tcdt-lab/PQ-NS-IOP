@@ -76,7 +76,7 @@ func BalanceCheckStart(db *sql.DB) {
 		zap.L().Error("Error while generating request number", zap.Error(err))
 		os.Exit(1)
 	}
-	balanceCheckStateMachine := state_machines.GenerateBalanceCheckStateMachine(reqNum, "127.0.0.1", "50090", db)
+	balanceCheckStateMachine := state_machines.GenerateBalanceCheckStateMachineForEvalDSA(reqNum, "127.0.0.1", "50090", db)
 	balanceCheckStateMachine.Transit()
 	if err != nil {
 		zap.L().Error("Error while generating request number", zap.Error(err))

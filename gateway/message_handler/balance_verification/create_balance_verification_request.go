@@ -3,16 +3,16 @@ package balance_verification
 import (
 	"database/sql"
 	"gateway/config"
+	"gateway/data"
 	"gateway/data_access"
 	"gateway/message_handler/util"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 )
 
-func CreateBalanceVerificationRequest(verifierPublicKey string, requestId int64, publicInput string, proof string, c config.Config, db *sql.DB) ([]byte, error) {
+func CreateBalanceVerificationRequest(destinationVerifier data.Verifier, requestId int64, publicInput string, proof string, c config.Config, db *sql.DB) ([]byte, error) {
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	guDa := data_access.GenerateGatewayUserDA(db)
-	vDa := data_access.GenerateVerifierDA(db)
 	cacheHandler := data_access.NewCacheHandlerDA()
 	adminId, err := cacheHandler.GetUserAdminId()
 	if err != nil {
@@ -39,7 +39,6 @@ func CreateBalanceVerificationRequest(verifierPublicKey string, requestId int64,
 		return nil, err
 	}
 
-	destinationVerifier, err := vDa.GetVerifierByPublicKey(verifierPublicKey)
 	protocolUtil.SignMessageInfo(&msg, msgInfoByte, gatewayUser.SecretKeyDsa, c.Security.DSAScheme)
 	encMsgInfoStr, _, err := protocolUtil.EncryptMessageInfo(msgInfoByte, destinationVerifier.SymmetricKey)
 

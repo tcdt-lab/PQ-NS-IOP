@@ -99,5 +99,7 @@ func (e *Ecc_dh) GenerateSharedSecret(secKey *ecdh.PrivateKey, pubKey *ecdh.Publ
 		return nil, nil, err
 	}
 	h := sha256.New()
-	return secret, h.Sum(secret), nil
+	h.Write(secret)
+	hash := h.Sum(nil)
+	return secret, hash, nil
 }

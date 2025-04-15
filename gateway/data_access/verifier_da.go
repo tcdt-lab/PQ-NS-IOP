@@ -90,3 +90,11 @@ func (vl *VerifierDA) AddUpdateVerifier(verifier data.Verifier) error {
 	}
 	return nil
 }
+
+func (vl *VerifierDA) IfVerifierExistsBuPublicKeySig(publicKeySig string) (bool, error) {
+	return data.IfVerifierExistByPubKeySign(vl.db, publicKeySig)
+}
+
+func (vl *VerifierDA) GetVerifierByPublicKeySig(publicKey string) (data.Verifier, error) {
+	return data.GetVerifierByPublicKey(vl.db, publicKey)
+}

@@ -97,9 +97,9 @@ func IfVerifierExistsWithIPandPort(db *sql.DB, verifier Verifier) (bool, error) 
 	return true, nil
 }
 
-func IfVeriferExistWithPubKeySignature(db *sql.DB, verifier Verifier) (bool, error) {
-	rows := db.QueryRow("SELECT * FROM verifiers WHERE public_key = ?", verifier.PublicKey)
-	if err := rows.Scan(&verifier.Id, &verifier.Ip, &verifier.Port, &verifier.PublicKey, &verifier.SymmetricKey); err != nil {
+func IfVerifierExistByPubKeySign(db *sql.DB, publicKey string) (bool, error) {
+	rows := db.QueryRow("SELECT * FROM verifiers WHERE public_key = ?", publicKey)
+	if err := rows.Scan(&publicKey); err != nil {
 		return false, nil
 	}
 	return true, nil

@@ -98,3 +98,25 @@ func IfGatewayExist(db *sql.DB, gateway Gateway) (bool, error) {
 	}
 	return false, nil
 }
+
+func IfGatewayExistByPubicKeySig(db *sql.DB, publicKeySig string) (bool, error) {
+	rows, err := db.Query("SELECT * FROM gateways WHERE Public_Key = ?", publicKeySig)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func GetGatewayByPublicKey(db *sql.DB, publicKey string) (Gateway, error) {
+	var gateway Gateway
+	rows := db.QueryRow("SELECT * FROM gateways WHERE Public_Key = ?", publicKey)
+	err := rows.Scan(&gateway.Id, &gateway.Ip, &gateway.Port, &gateway.PublicKey, &gateway.Ticket, &gateway.SymmetricKey)
+	if err != nil {
+		return Gateway{}, err
+	}
+	return gateway, nil
+}

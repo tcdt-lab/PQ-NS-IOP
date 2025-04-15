@@ -2,49 +2,47 @@ package network
 
 import (
 	"bytes"
-	"encoding/hex"
-	"test.org/protocol/pkg"
+	"database/sql"
+	"gateway/config"
+
+	"gateway/message_handler"
 
 	"go.uber.org/zap"
 	"io"
 	"net"
 )
 
-type Server struct {
-	messageParser pkg.Message
+zap.L().Info("Starting server")
+listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
+if err != nil {
+log.Fatal(err)
 }
 
-func (s *Server) StartSocketServer(port string) error {
-
-	ln, err := net.Listen("tcp", port)
-	defer ln.Close()
-	if err != nil {
-		zap.L().Error("Error listening:", zap.Error(err))
-	}
-	zap.L().Info("Listening on " + port)
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			zap.L().Error("Error accepting a client: ", zap.Error(err))
-			continue
-		}
-
-		// Handle the connection in a new goroutine
-		go s.handleConnection(conn)
-	}
-	return nil
+for {
+conn, err := listener.Accept()
+if err != nil {
+log.Fatal(err)
+}
+go handleConnection(conn, config, db)
+}
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
+	// Handle the connection
 	defer conn.Close()
 	var buffer bytes.Buffer
 	var bufferSize = 0
+	var i = 0
 	for {
-		buf := make([]byte, 1024)
+		i += 1
+
+		buf := make([]byte, config.Server.BufferSize)
 		n, err := conn.Read(buf)
+
 		buffer.Write(buf[:n])
 		bufferSize += n
-		if err == io.EOF && err != nil {
+
+		if err == io.EOF {
 			zap.L().Error("No more info to read:", zap.Error(err))
 			break
 		}
@@ -54,12 +52,14 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 
 	}
-	zap.L().Info("Received data: ", zap.String("data", hex.EncodeToString(buffer.Bytes())))
-	//go func() {
-	//	err := s.messageParser.HandleRequests(buffer.Bytes(), bufferSize)
-	//	if err != nil {
-	//		zap.L().Error("Error parsing message: ", zap.Error(err))
-	//	}
-	//}()
 
-}
+	var messageParser = message_handler.GenerateNewMessageHandler(db)
+	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
+	if err != nil {
+		zap.L().Error("Error parsing message: ", zap.Error(err))
+	}
+	_, err = conn.Write(response)
+	if err != nil {
+		zap.L().Error("Error writing response: ", zap.Error(err))
+	}
+	buffer.Reset()

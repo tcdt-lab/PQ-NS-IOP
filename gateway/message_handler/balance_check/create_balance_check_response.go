@@ -30,7 +30,7 @@ func CreateBalanceCheckResponse(ticketKey string, requestId int64, c *config.Con
 	balanceCheckResponse.PublicInputs = publicInputs
 	msgInfo.Params = balanceCheckResponse
 	msgInfo.RequestId = requestId
-	msgInfo.OperationTypeId = pkg.GATEWAY_GATEWAY_BLANCE_CHECK_RESPONSE_ID
+	msgInfo.OperationTypeId = pkg.GATEWAY_GATEWAY_BALANCE_CHECK_RESPONSE_ID
 
 	adminId, err := cacheHandler.GetUserAdminId()
 	if err != nil {

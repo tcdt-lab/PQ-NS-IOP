@@ -3,11 +3,11 @@ package get_init_information
 import (
 	"database/sql"
 
+	"gateway/config"
 	"gateway/data"
 	"gateway/data_access"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
-	"verifier/config"
 )
 
 func ApplyGatewayVerifierGetInfoResponse(msgInfo pkg.MessageInfo, db *sql.DB) error {

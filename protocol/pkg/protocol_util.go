@@ -51,6 +51,7 @@ func (mp *ProtocolUtil) RegisterInterfacesInGob() {
 func (mp *ProtocolUtil) VerifyMessageSignature(signatureBytes []byte, infoBytes []byte, pubKeyStr string, schemeName string) (bool, error) {
 	response, err := mp.AsymmetricHandler.Verify(pubKeyStr, infoBytes, signatureBytes, schemeName)
 	if err != nil {
+		zap.L().Error("ErrorParams while verifying the message", zap.Error(err))
 		return false, err
 	}
 	return response, nil
