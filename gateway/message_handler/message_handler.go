@@ -30,9 +30,15 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 	if err != nil {
 		return nil, err
 	}
-	msgInfo, senderPubKey, err := ParseMessage(message, senderIp, senderPort, mp.db)
+	msgInfo, _, err, ticketKey := ParseMessage(message, senderIp, senderPort, mp.db)
 	switch msgInfo.OperationTypeId {
 	case pkg.GATEWAY_GATEWAY_BALANCE_CHECK_REQUEST_ID:
-		balance_check.CreateBalanceCheckResponse()
+		response, err = balance_check.CreateBalanceCheckResponse(ticketKey, msgInfo.RequestId, cfg, mp.db)
+		if err != nil {
+			zap.L().Error("Error while creating balance check response", zap.Error(err))
+			return nil, err
+		}
+
 	}
+	return response, nil
 }

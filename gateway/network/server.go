@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"gateway/config"
+	"log"
 
 	"gateway/message_handler"
 
@@ -12,19 +13,20 @@ import (
 	"net"
 )
 
-zap.L().Info("Starting server")
-listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
-if err != nil {
-log.Fatal(err)
-}
+func StartServer(config *config.Config, db *sql.DB) {
+	zap.L().Info("Starting server")
+	listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-for {
-conn, err := listener.Accept()
-if err != nil {
-log.Fatal(err)
-}
-go handleConnection(conn, config, db)
-}
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+		go handleConnection(conn, config, db)
+	}
 }
 
 func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
@@ -63,3 +65,4 @@ func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
 		zap.L().Error("Error writing response: ", zap.Error(err))
 	}
 	buffer.Reset()
+}

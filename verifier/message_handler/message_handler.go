@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
+	"verifier/message_handler/gateway_verifier/gv_balance_verification"
 	"verifier/message_handler/gateway_verifier/gv_get_info"
 	key_distribution2 "verifier/message_handler/gateway_verifier/gv_key_distribution"
 	"verifier/message_handler/gateway_verifier/gv_ticket_issue"
@@ -83,7 +84,12 @@ func (mp *MessageHandler) HandleRequests(message []byte, senderIp string, sender
 	case pkg.GATEWAT_VERIFIER_TICKET_ISSUE_REQUEST_ID:
 		zap.L().Info("Handling Ticket Issue Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
 		response, err = mp.GV_HandleTicketIssueRequest(msgInfo, senderPubKey, cfg)
+
+	case pkg.GATEWAY_VERIFIER_BALANCE_VERIFICATION_REQUEST_ID:
+		zap.L().Info("Handling Balance Verification Request", zap.String("sender id", senderIp), zap.String("sender port", senderPort), zap.String("req ID", strconv.FormatInt(msgInfo.RequestId, 10)))
+		response, err = mp.GV_HandleBalanceVerificationRequest(msgInfo, senderPubKey, cfg)
 	}
+
 	return response, nil
 	errOperation := errors.New("Operation type not found")
 	return mp.GenerateGeneralErrorResponse(errOperation, *cfg), errOperation
@@ -173,6 +179,16 @@ func (mp *MessageHandler) GV_HandleTicketIssueRequest(info pkg.MessageInfo, key 
 	res, err := gv_ticket_issue.CreateTicketIssueResponse(ticketRequestParams.RequestId, key, ticketRequestParams.DestinationServerIP, ticketRequestParams.DestinationServerPort, mp.db, *cfg)
 	if err != nil {
 		zap.L().Error("Error while creating ticket issue response", zap.Error(err))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (mp *MessageHandler) GV_HandleBalanceVerificationRequest(info pkg.MessageInfo, key string, cfg *config.Config) ([]byte, error) {
+	verificationReq := info.Params.(gateway_verifier.VerificationRequest)
+	res, err := gv_balance_verification.CreateBalanceVerificationResponse(verificationReq.Proof, verificationReq.PublicInputs, info.RequestId, key, mp.db, *cfg)
+	if err != nil {
+		zap.L().Error("Error while creating balance verification response", zap.Error(err))
 		return nil, err
 	}
 	return res, nil

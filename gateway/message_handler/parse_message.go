@@ -11,19 +11,19 @@ import (
 	"test.org/protocol/pkg"
 )
 
-func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error) {
+func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error, string) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
 	if err != nil {
 		zap.L().Error("Error reading config.yaml file", zap.Error(err))
-		return pkg.MessageInfo{}, "", err
+		return pkg.MessageInfo{}, "", err, ""
 	}
 
 	message, err := protoUtil.ConvertByteToMessage(msgBytes)
 	if err != nil {
 		zap.L().Error("Error while converting byte to message", zap.Error(err))
-		return pkg.MessageInfo{}, "", err
+		return pkg.MessageInfo{}, "", err, ""
 	}
 
 	msgInfo := pkg.MessageInfo{}
@@ -35,42 +35,57 @@ func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.D
 	var symmetricKey string
 	symmetricKey = ""
 
-	if gatewayExists {
+	if gatewayExists && message.MsgTicket == "" {
 		sourceGateway, err := gDA.GetGatewayByPublicKey(message.PublicKeySig)
 		if err != nil {
 			zap.L().Error("Error while getting gateway", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 		symmetricKey = sourceGateway.SymmetricKey
-	} else if verifierExists {
+	} else if verifierExists && message.MsgTicket == "" {
 		sourceVerifier, err := vDa.GetVerifierByPublicKeySig(message.PublicKeySig)
 		if err != nil {
 			zap.L().Error("Error while getting verifier", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 		symmetricKey = sourceVerifier.SymmetricKey
 	} else {
-		msgInfoBytes, _ := b64.StdEncoding.DecodeString(message.MsgInfo)
-		msgInfo, err = protoUtil.ConvertByteToMessageInfo(msgInfoBytes)
-		if err != nil {
-			zap.L().Error("Error while converting b64 to message data", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+		if message.MsgTicket != "" {
+			bootstrapVerifier, err := vDa.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)
+			if err != nil {
+				zap.L().Error("Error while getting bootstrap verifier", zap.Error(err))
+				return pkg.MessageInfo{}, "", err, ""
+			}
+			symmetricKeyBootstrapVerifier := bootstrapVerifier.SymmetricKey
+			ticket, err := protoUtil.DecryptTicket(message.MsgTicket, symmetricKeyBootstrapVerifier)
+			if err != nil {
+				zap.L().Error("Error while decrypting ticket", zap.Error(err))
+				return pkg.MessageInfo{}, "", err, ""
+			}
+			symmetricKey = ticket.SharedKey
+		} else {
+			msgInfoBytes, _ := b64.StdEncoding.DecodeString(message.MsgInfo)
+			msgInfo, err = protoUtil.ConvertByteToMessageInfo(msgInfoBytes)
+			if err != nil {
+				zap.L().Error("Error while converting b64 to message data", zap.Error(err))
+				return pkg.MessageInfo{}, "", err, ""
+			}
+			return msgInfo, message.PublicKeySig, nil, ""
 		}
-		return msgInfo, message.PublicKeySig, nil
 	}
 	if message.IsEncrypted {
 
 		msgInfo, decMsgInfoBytes, err = protoUtil.DecryptMessageInfo(message.MsgInfo, symmetricKey)
 		if err != nil {
 			zap.L().Error("Error while decrypting message data", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 	} else {
 		msgInfo, decMsgInfoBytes, err = protoUtil.ConvertPlainStrToMessageInfo(message.MsgInfo)
 
 		if err != nil {
 			zap.L().Error("Error while converting b64 to message data", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 	}
 	if message.Hmac != "" {
@@ -79,11 +94,11 @@ func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.D
 
 		if err != nil {
 			zap.L().Error("Error while verifying HMAC", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 		if !res {
 			zap.L().Error("HMAC is not valid")
-			return pkg.MessageInfo{}, "", errors.New("HMAC is not valid")
+			return pkg.MessageInfo{}, "", errors.New("HMAC is not valid"), ""
 		}
 
 	}
@@ -92,14 +107,17 @@ func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.D
 		res, err := protoUtil.VerifyMessageSignature(signatureBytes, decMsgInfoBytes, message.PublicKeySig, cfg.Security.DSAScheme)
 		if err != nil {
 			zap.L().Error("Error while verifying signature", zap.Error(err))
-			return pkg.MessageInfo{}, "", err
+			return pkg.MessageInfo{}, "", err, ""
 		}
 		if !res {
 			zap.L().Error("Signature is not valid")
-			return pkg.MessageInfo{}, "", errors.New("Signature is not valid")
+			return pkg.MessageInfo{}, "", errors.New("Signature is not valid"), ""
 		}
 	}
-	return msgInfo, message.PublicKeySig, nil
+	if message.MsgTicket != "" {
+		return msgInfo, message.PublicKeySig, nil, symmetricKey
+	}
+	return msgInfo, message.PublicKeySig, nil, ""
 }
 func ParseGatewayVerifierResponse(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, error) {
 	cfg, err := config.ReadYaml()
