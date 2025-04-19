@@ -46,6 +46,14 @@ func UpdateGateway(db *sql.DB, gateway Gateway) (int64, error) {
 	}
 	return result.RowsAffected()
 }
+func UpdateGatewayByIpAndPort(db *sql.DB, gateway Gateway) (int64, error) {
+	result, err := db.Exec("UPDATE gateways SET Public_Key = ?, ticket = ?, Symmetric_Key = ? WHERE Ip = ? AND Port = ?", gateway.PublicKey, gateway.Ticket, gateway.SymmetricKey, gateway.Ip, gateway.Port)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+
+}
 
 func RemoveGateway(db *sql.DB, id int) (int64, error) {
 	result, err := db.Exec("DELETE FROM gateways WHERE Id = ?", id)

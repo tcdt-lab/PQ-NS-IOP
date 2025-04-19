@@ -126,7 +126,6 @@ func GenerateBootstrapGentInfoStateMachine(requestId int64, database *sql.DB) Bo
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewBootstrapFsmDA()
 	cacheHandler := data_access.NewCacheHandlerDA()
-	var vDa = data_access.GenerateVerifierDA(database)
 
 	cfg, err := config.ReadYaml()
 	if err != nil {

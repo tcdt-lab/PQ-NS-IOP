@@ -36,7 +36,7 @@ func extractSenderVerifier(res gateway_verifier.GatewayVerifierInitInfoOperation
 	verifier := data.Verifier{
 		Ip:           res.CurrentVerifierInfo.VerifierIpAddress,
 		Port:         res.CurrentVerifierInfo.VerifierPort,
-		PublicKey:    res.CurrentVerifierInfo.VerifierPublicKeyKem,
+		PublicKey:    res.CurrentVerifierInfo.VerifierPublicKeySignature,
 		SymmetricKey: symmetricKey,
 	}
 	return verifier
@@ -48,7 +48,7 @@ func extractGatewaysInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoOp
 		gateway := data.Gateway{}
 		gateway.Ip = gatewayInfo.GatewayIpAddress
 		gateway.Port = gatewayInfo.GatewayPort
-		gateway.PublicKey = gatewayInfo.GatewayPublicKeyKem
+		gateway.PublicKey = gatewayInfo.GatewayPublicKeySignature
 		gatewaysInfo = append(gatewaysInfo, gateway)
 	}
 	return gatewaysInfo
@@ -61,7 +61,7 @@ func extractVerifiersInfo(gvGetInfoRes gateway_verifier.GatewayVerifierInitInfoO
 		verifier.SymmetricKey = bootStrapVerifierSymmetricKey
 		verifier.Ip = verifierInfo.VerifierIpAddress
 		verifier.Port = verifierInfo.VerifierPort
-		verifier.PublicKey = verifierInfo.VerifierPublicKeyKem
+		verifier.PublicKey = verifierInfo.VerifierPublicKeySignature
 		verifiersInfo = append(verifiersInfo, verifier)
 	}
 	return verifiersInfo

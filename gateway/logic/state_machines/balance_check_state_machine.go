@@ -320,6 +320,7 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 				zap.L().Error("Error in creating get info message", zap.Error(err))
 				return err
 			}
+
 			cacheHandler.SetRequestInformation(sm.RequestId, "generateTicketRequest", b64.StdEncoding.EncodeToString(msgBytes))
 			return nil
 		},
@@ -365,17 +366,19 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 				if err != nil {
 					return err
 				}
-				msgData, _, err, _ := message_handler.ParseMessage(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
+				msgData, _, err, _ := message_handler.ParseMessageWithoutTicketKey(responseBytes, cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port, sm.db)
 				if err != nil {
 					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
 				}
+
 				var ticketResponsePrams = msgData.Params.(gateway_verifier.GatewayVerifierTicketResponse)
 				balanceCheckReqBytes, err := balance_check.CreateBalanceCheckRequest(sm.RequestId, 500, destinationIp, destinationPort, ticketResponsePrams.TicketKey, ticketResponsePrams.TicketString, sm.db, *cfg)
 				if err != nil {
 					zap.L().Error("Error in creating balance check request", zap.Error(err))
 					return err
 				}
+				cacheHandler.SetRequestInformation(sm.RequestId, "ticketKey", ticketResponsePrams.TicketKey)
 				cacheHandler.SetRequestInformation(sm.RequestId, "balanceCheckRequestStr", b64.StdEncoding.EncodeToString(balanceCheckReqBytes))
 
 				return nil
@@ -403,7 +406,8 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 				}
 				reponseByte, err := network.SendAndAwaitReply(destinationIp, destinationPort, requestBytes)
 
-				msgInfo, _, err, _ := message_handler.ParseMessage(reponseByte, sm.destinationGatewayIp, sm.destinationGatewayPort, sm.db)
+				ticketKey, _ := cacheHandler.GetRequestInformation(requestId, "ticketKey")
+				msgInfo, _, err, _ := message_handler.ParseMessageWithTicketKey(ticketKey, reponseByte, sm.destinationGatewayIp, sm.destinationGatewayPort, sm.db)
 				if err != nil {
 					zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 					return err
@@ -459,7 +463,7 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 						}
 						reponseByte, err := network.SendAndAwaitReply(verifierIp, verifierPort, requestBytes)
 
-						msgInfo, _, err, _ := message_handler.ParseMessage(reponseByte, sm.destinationGatewayIp, sm.destinationGatewayPort, sm.db)
+						msgInfo, _, err, _ := message_handler.ParseMessageWithoutTicketKey(reponseByte, sm.destinationGatewayIp, sm.destinationGatewayPort, sm.db)
 						if err != nil {
 							zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 							return

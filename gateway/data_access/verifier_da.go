@@ -66,7 +66,7 @@ func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
 
 	for _, v := range verifier {
 		if exist, _ := data.IfVerifierExistsWithIPandPort(vl.db, v); exist {
-			if _, err := data.UpdateVerifier(vl.db, v); err != nil {
+			if _, err := data.UpdateVerifierWithIpandPort(vl.db, v); err != nil {
 				return err
 			}
 		} else {
@@ -80,7 +80,7 @@ func (vl *VerifierDA) AddUpdateVerifiers(verifier []data.Verifier) error {
 
 func (vl *VerifierDA) AddUpdateVerifier(verifier data.Verifier) error {
 	if exist, _ := data.IfVerifierExistsWithIPandPort(vl.db, verifier); exist {
-		if _, err := data.UpdateVerifier(vl.db, verifier); err != nil {
+		if _, err := data.UpdateVerifierWithIpandPort(vl.db, verifier); err != nil {
 			return err
 		}
 	} else {

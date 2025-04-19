@@ -11,7 +11,14 @@ import (
 	"test.org/protocol/pkg"
 )
 
-func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error, string) {
+func ParseMessageWithTicketKey(ticketKey string, msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error, string) {
+	return parseMessage(ticketKey, msgBytes, senderIp, senderPort, db)
+}
+func ParseMessageWithoutTicketKey(msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error, string) {
+	return parseMessage("", msgBytes, senderIp, senderPort, db)
+}
+
+func parseMessage(ticketKey string, msgBytes []byte, senderIp string, senderPort string, db *sql.DB) (pkg.MessageInfo, string, error, string) {
 	cfg, err := config.ReadYaml()
 
 	protoUtil := util.ProtocolUtilGenerator(cfg.Security.CryptographyScheme)
@@ -28,27 +35,30 @@ func ParseMessage(msgBytes []byte, senderIp string, senderPort string, db *sql.D
 
 	msgInfo := pkg.MessageInfo{}
 	var decMsgInfoBytes []byte
+	var symmetricKey string
+	symmetricKey = ""
+
 	gDA := data_access.GenerateGatewayDA(db)
 	vDa := data_access.GenerateVerifierDA(db)
 	gatewayExists, err := gDA.IfGatewayExistByPublicKeySig(message.PublicKeySig)
 	verifierExists, err := vDa.IfVerifierExistsBuPublicKeySig(message.PublicKeySig)
-	var symmetricKey string
-	symmetricKey = ""
 
-	if gatewayExists && message.MsgTicket == "" {
+	if gatewayExists && message.MsgTicket == "" && ticketKey == "" {
 		sourceGateway, err := gDA.GetGatewayByPublicKey(message.PublicKeySig)
 		if err != nil {
 			zap.L().Error("Error while getting gateway", zap.Error(err))
 			return pkg.MessageInfo{}, "", err, ""
 		}
 		symmetricKey = sourceGateway.SymmetricKey
-	} else if verifierExists && message.MsgTicket == "" {
+	} else if verifierExists && message.MsgTicket == "" && ticketKey == "" {
 		sourceVerifier, err := vDa.GetVerifierByPublicKeySig(message.PublicKeySig)
 		if err != nil {
 			zap.L().Error("Error while getting verifier", zap.Error(err))
 			return pkg.MessageInfo{}, "", err, ""
 		}
 		symmetricKey = sourceVerifier.SymmetricKey
+	} else if ticketKey != "" {
+		symmetricKey = ticketKey
 	} else {
 		if message.MsgTicket != "" {
 			bootstrapVerifier, err := vDa.GetVerifierByIpAndPort(cfg.BootstrapNode.Ip, cfg.BootstrapNode.Port)

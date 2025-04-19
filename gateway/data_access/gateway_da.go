@@ -58,7 +58,7 @@ func (gl *GatewayDA) AddUpdateGateways(gateways []data.Gateway) error {
 
 	for _, gateway := range gateways {
 		if exist, _ := data.IfGatewayExist(gl.db, gateway); exist {
-			_, err := data.UpdateGateway(gl.db, gateway)
+			_, err := data.UpdateGatewayByIpAndPort(gl.db, gateway)
 			if err != nil {
 				return err
 			}

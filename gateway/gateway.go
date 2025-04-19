@@ -7,6 +7,7 @@ import (
 	"gateway/logic"
 	"gateway/logic/state_machines"
 	"gateway/message_handler/util"
+	"gateway/network"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 	"os"
@@ -35,6 +36,8 @@ func main() {
 		zap.L().Error("Error while generating keys", zap.Error(err))
 		os.Exit(1)
 	}
+
+	network.StartServer(c, db)
 
 }
 
@@ -76,7 +79,7 @@ func BalanceCheckStart(db *sql.DB) {
 		zap.L().Error("Error while generating request number", zap.Error(err))
 		os.Exit(1)
 	}
-	balanceCheckStateMachine := state_machines.GenerateBalanceCheckStateMachineForEvalDSA(reqNum, "127.0.0.1", "50090", db)
+	balanceCheckStateMachine := state_machines.GenerateBalanceCheckStateMachineForEvalDSA(reqNum, "127.0.0.1", "50053", db)
 	balanceCheckStateMachine.Transit()
 	if err != nil {
 		zap.L().Error("Error while generating request number", zap.Error(err))

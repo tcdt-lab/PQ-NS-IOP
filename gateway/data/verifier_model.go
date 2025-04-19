@@ -1,6 +1,9 @@
 package data
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type Verifier struct {
 	Id           int
@@ -43,6 +46,15 @@ func UpdateVerifier(db *sql.DB, verifier Verifier) (int64, error) {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+func UpdateVerifierWithIpandPort(db *sql.DB, verifier Verifier) (int64, error) {
+	result, err := db.Exec("UPDATE verifiers SET  public_key = ?, symmetric_key = ? WHERE Ip = ? AND Port = ?", verifier.PublicKey, verifier.SymmetricKey, verifier.Ip, verifier.Port)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+
 }
 
 func RemoveVerifier(db *sql.DB, id int) (int64, error) {
@@ -98,9 +110,11 @@ func IfVerifierExistsWithIPandPort(db *sql.DB, verifier Verifier) (bool, error) 
 }
 
 func IfVerifierExistByPubKeySign(db *sql.DB, publicKey string) (bool, error) {
-	rows := db.QueryRow("SELECT * FROM verifiers WHERE public_key = ?", publicKey)
-	if err := rows.Scan(&publicKey); err != nil {
+	var count int
+	rows := db.QueryRow("SELECT COUNT(*) FROM verifiers WHERE public_key = ?", publicKey)
+	if err := rows.Scan(&count); err != nil {
+		fmt.Println(err)
 		return false, nil
 	}
-	return true, nil
+	return count > 0, nil
 }

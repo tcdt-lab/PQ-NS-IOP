@@ -14,7 +14,7 @@ import (
 func StartServer(config *config.Config, db *sql.DB) {
 	// Start the server
 	zap.L().Info("Starting server")
-	listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
+	listener, err := net.Listen(config.Server.Protocol, config.Server.Ip+":"+config.Server.Port)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -62,7 +62,7 @@ func CreateBalanceCheckResponse(ticketKey string, requestId int64, c *config.Con
 	return msgBytes, nil
 }
 
-func CreateProof(c *config.Config) (pubicInputs string, proof string, err error) {
+func CreateProof(c *config.Config) (string, string, error) {
 	zkeyBytes, err := os.ReadFile(c.ZKP.ProverKeyPath)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "failed to read zkey file: %v\n", err)
@@ -78,5 +78,5 @@ func CreateProof(c *config.Config) (pubicInputs string, proof string, err error)
 	proof, publicInputs, err := prover.Groth16ProverRaw(zkeyBytes, wtnsBytes)
 	prover.Groth16Prover(zkeyBytes, wtnsBytes)
 	fmt.Println(proof, publicInputs, err)
-	return proof, publicInputs, err
+	return publicInputs, proof, err
 }
