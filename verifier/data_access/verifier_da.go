@@ -55,8 +55,8 @@ func (vl *VerifierDA) GetVerifierByIP(ip string) (data.Verifier, error) {
 
 func (vl *VerifierDA) AddUpdateVerifier(verifier data.Verifier) (int64, error) {
 
-	if verifierExist, _ := data.IfVerifierExistByPublicKeySig(vl.db, verifier.PublicKeySig); verifierExist {
-		return data.UpdateVerifier(&verifier, vl.db)
+	if verifierExist, _ := data.IfVerifierExists(vl.db, verifier); verifierExist {
+		return data.UpdateVerifierByIpandPort(&verifier, vl.db)
 	}
 	return data.AddNewVerifier(&verifier, vl.db)
 }

@@ -100,6 +100,7 @@ func formatGateways(gateways []data.Gateway) []verifier_verifier.VVInitInfoStruc
 		inintInfoGateway.SigScheme = gateway.SigScheme
 		inintInfoGateway.GatewayPublicKeyKem = gateway.PublicKeyKem
 		inintInfoGateway.KemScheme = gateway.KemScheme
+		inintInfoGateway.SymmetricKey = gateway.SymmetricKey
 		inintInfoGateways = append(inintInfoGateways, inintInfoGateway)
 	}
 	return inintInfoGateways

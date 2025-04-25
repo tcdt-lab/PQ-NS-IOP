@@ -62,7 +62,7 @@ func (gDa *GatewayDA) GetGatewayByPublicKeySig(publicKeySig string) (data.Gatewa
 func (gDa *GatewayDA) AddUpdateGateway(gateway data.Gateway) (int64, error) {
 
 	if gatewayExist, _ := data.IfGatewayExists(gDa.db, gateway.Ip, gateway.Port); gatewayExist {
-		return data.UpdateGateway(gDa.db, gateway)
+		return data.UpdateGatewayByIpandPort(gDa.db, gateway)
 	} else {
 		return data.AddGateway(gDa.db, gateway)
 	}

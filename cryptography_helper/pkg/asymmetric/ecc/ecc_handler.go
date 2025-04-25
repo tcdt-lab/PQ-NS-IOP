@@ -1,5 +1,7 @@
 package ecc
 
+import "fmt"
+
 const ()
 
 type Ecc_handler struct {
@@ -66,6 +68,7 @@ func (e *Ecc_handler) KemGenerateSecretKey(secKey string, pubKey string, ciphert
 	}
 	publicKey, err := e.Eccdh.ConvertBase64StringToPublicKey(pubKey)
 	if err != nil {
+		fmt.Print(err)
 		return nil, nil, err
 	}
 

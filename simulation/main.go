@@ -7,9 +7,11 @@ import (
 	gtStateMachine "gateway/logic/state_machines"
 	"gateway/message_handler/util"
 	"go.uber.org/zap"
+	"simulation/balance_verification"
 	"simulation/dsa"
 	"simulation/key_distribution"
 	"simulation/trust"
+	"sync"
 	vConfig "verifier/config"
 	vStateMachine "verifier/logic/state_machines"
 )
@@ -30,6 +32,8 @@ func main() {
 	fmt.Println("8. Get Info Operation (GV) ")
 	fmt.Println("9. Get Info Operation (VV) ")
 	fmt.Println("10. Balance Check Process")
+	fmt.Println("11. Sequencial Balance Check Process")
+	fmt.Println("12. Parallel Balance Check Process")
 	fmt.Println("Input:")
 	var i int
 	fmt.Scanf("%d", &i)
@@ -71,10 +75,18 @@ func runOperation(i int) {
 		boostrapGetInfoStateMachine.Transit()
 	case 10:
 		destinatinIp := "127.0.0.1"
-		destinatinPort := "50052"
+		destinatinPort := "50062"
 		db, _ := getDbConnectionGT()
-		boostrapKeyStateMachine := gtStateMachine.GenerateBalanceCheckStateMachine(reqNum, destinatinIp, destinatinPort, db)
+		boostrapKeyStateMachine := gtStateMachine.GenerateBalanceCheckStateMachine(reqNum, destinatinIp, destinatinPort, db, &sync.Mutex{})
 		boostrapKeyStateMachine.Transit()
+	case 11:
+		destinatinIp := "127.0.0.1"
+		destinatinPort := "50062"
+		balance_verification.RunSequencialBalanceVerification(destinatinIp, destinatinPort)
+	case 12:
+		destinatinIp := "127.0.0.1"
+		destinatinPort := "50062"
+		balance_verification.RunParallelBalanceVerification(destinatinIp, destinatinPort)
 	}
 }
 

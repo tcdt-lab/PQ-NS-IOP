@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	b64 "encoding/base64"
 	"errors"
+	"fmt"
 )
 
 type Ecc_dh struct {
@@ -29,6 +30,7 @@ func (e *Ecc_dh) DHKeyGen(schemeName string) (*ecdh.PrivateKey, *ecdh.PublicKey,
 func (e *Ecc_dh) UnmarshalPublicKey(pubKey []byte) (*ecdh.PublicKey, error) {
 	publicKey, err := x509.ParsePKIXPublicKey(pubKey)
 	if err != nil {
+		fmt.Print(err)
 		return nil, err
 	}
 	return publicKey.(*ecdh.PublicKey), nil
@@ -76,6 +78,7 @@ func (e *Ecc_dh) ConvertBase64StringToPublicKey(pubKeyStr string) (*ecdh.PublicK
 	}
 	pubKey, err := e.UnmarshalPublicKey(pubKeyBytes)
 	if err != nil {
+		fmt.Print(err.Error() + "Error in unmarshalling public key" + pubKeyStr + "\n")
 		return nil, err
 	}
 	return pubKey, nil

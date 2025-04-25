@@ -30,6 +30,9 @@ type BalanceCheckInfoStateMachine struct {
 	db                     *sql.DB
 	destinationGatewayIp   string
 	destinationGatewayPort string
+	mutex                  *sync.Mutex
+	proof                  string
+	publicInputs           string
 }
 
 func (sm *BalanceCheckInfoStateMachine) GetCurrentState() State {
@@ -279,11 +282,12 @@ func GenerateBalanceCheckStateMachineForEvalDSA(requestId int64, destinationIp s
 
 }
 
-func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, destinationPort string, database *sql.DB) BalanceCheckInfoStateMachine {
+func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, destinationPort string, database *sql.DB, mutex *sync.Mutex) BalanceCheckInfoStateMachine {
 
 	zap.L().Info("Generating bootstrap get info state machine")
 	sm := BalanceCheckInfoStateMachine{}
 	sm.db = database
+	sm.mutex = mutex
 	sm.ReverseStatesMap = make(map[*State]*State)
 	sm.TraverseStatesMap = make(map[*State]*State)
 	sm.bootstrapFsmDA = data_access.NewBootstrapFsmDA()
@@ -413,6 +417,8 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 					return err
 				}
 				respParams := msgInfo.Params.(gateway_gateway.BalanceCheckResponse)
+				sm.proof = respParams.Proof
+				sm.publicInputs = respParams.PublicInputs
 				cacheHandler.SetRequestInformation(sm.RequestId, "balanceCheckResponse_Proof", respParams.Proof)
 				cacheHandler.SetRequestInformation(sm.RequestId, "balanceCheckResponse_PublicInputs", respParams.PublicInputs)
 				return nil
@@ -435,11 +441,11 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 			verifeirs, err := vda.GetVerifiers()
 			results := make([]bool, len(verifeirs))
 			wg := sync.WaitGroup{}
-			proof, err := cacheHandler.GetRequestInformation(sm.RequestId, "balanceCheckResponse_Proof")
+			//proof, err := cacheHandler.GetRequestInformation(sm.RequestId, "balanceCheckResponse_Proof")
 			if err != nil {
 				return err
 			}
-			publicInputs, err := cacheHandler.GetRequestInformation(sm.RequestId, "balanceCheckResponse_PublicInputs")
+			//publicInputs, err := cacheHandler.GetRequestInformation(sm.RequestId, "balanceCheckResponse_PublicInputs")
 			if err != nil {
 				return err
 			}
@@ -455,7 +461,8 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 					defer wg.Done()
 					verifierIp := verifier.Ip
 					verifierPort := verifier.Port
-					requestBytes, err := balance_verification.CreateBalanceVerificationRequest(verifier, sm.RequestId, publicInputs, proof, *cfg, sm.db)
+					zap.L().Info("Sending balance verification request", zap.String("public input", sm.publicInputs), zap.String("proof", sm.proof), zap.String("verifierIp", verifierIp), zap.String("verifierPort", verifierPort), zap.String("requestId", string(sm.RequestId)))
+					requestBytes, err := balance_verification.CreateBalanceVerificationRequest(verifier, sm.RequestId, sm.publicInputs, sm.proof, *cfg, sm.db)
 					if err == nil {
 
 						if err != nil {
@@ -468,6 +475,8 @@ func GenerateBalanceCheckStateMachine(requestId int64, destinationIp string, des
 							zap.L().Error("Error in parsing response from verifier", zap.Error(err))
 							return
 						}
+
+						zap.L().Info("Balance verification response", zap.String("requestId", string(sm.RequestId)), zap.String("verifierIp", verifierIp), zap.String("verifierPort", verifierPort))
 						respParams := msgInfo.Params.(gateway_verifier.VerificationResponse)
 
 						mu.Lock()

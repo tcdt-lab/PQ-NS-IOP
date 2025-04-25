@@ -27,4 +27,5 @@ type VVInitInfoStructureGateway struct {
 	GatewayPort               string `json:"gatewayPort"`
 	KemScheme                 string `json:"kemScheme"`
 	SigScheme                 string `json:"sigScheme"`
+	SymmetricKey              string `json:"symmetricKey"`
 }

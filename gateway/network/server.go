@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"gateway/config"
 	"log"
+	"sync"
 
 	"gateway/message_handler"
 
@@ -15,6 +16,7 @@ import (
 
 func StartServer(config *config.Config, db *sql.DB) {
 	zap.L().Info("Starting server")
+	var mu sync.Mutex
 	listener, err := net.Listen(config.Server.Protocol, "127.0.0.1:"+config.Server.Port)
 	if err != nil {
 		log.Fatal(err)
@@ -25,11 +27,11 @@ func StartServer(config *config.Config, db *sql.DB) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go handleConnection(conn, config, db)
+		go handleConnection(conn, config, db, &mu)
 	}
 }
 
-func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
+func handleConnection(conn net.Conn, config *config.Config, db *sql.DB, mutex *sync.Mutex) {
 	// Handle the connection
 	defer conn.Close()
 	var buffer bytes.Buffer
@@ -56,7 +58,7 @@ func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
 	}
 
 	var messageParser = message_handler.GenerateNewMessageHandler(db)
-	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
+	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config, mutex)
 	if err != nil {
 		zap.L().Error("Error parsing message: ", zap.Error(err))
 	}

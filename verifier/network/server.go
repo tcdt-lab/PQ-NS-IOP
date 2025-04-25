@@ -7,12 +7,14 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 	"verifier/config"
 	"verifier/message_handler"
 )
 
 func StartServer(config *config.Config, db *sql.DB) {
 	// Start the server
+	var mu sync.Mutex
 	zap.L().Info("Starting server")
 	listener, err := net.Listen(config.Server.Protocol, config.Server.Ip+":"+config.Server.Port)
 	if err != nil {
@@ -24,11 +26,11 @@ func StartServer(config *config.Config, db *sql.DB) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go handleConnection(conn, config, db)
+		go handleConnection(conn, config, db, &mu)
 	}
 }
 
-func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
+func handleConnection(conn net.Conn, config *config.Config, db *sql.DB, mutex *sync.Mutex) {
 	// Handle the connection
 	defer conn.Close()
 	var buffer bytes.Buffer
@@ -55,7 +57,7 @@ func handleConnection(conn net.Conn, config *config.Config, db *sql.DB) {
 	}
 
 	var messageParser = message_handler.GenerateNewMessageHandler(db)
-	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config)
+	response, err := messageParser.HandleRequests(buffer.Bytes(), conn.RemoteAddr().String(), conn.RemoteAddr().Network(), *config, mutex)
 	if err != nil {
 		zap.L().Error("Error parsing message: ", zap.Error(err))
 	}

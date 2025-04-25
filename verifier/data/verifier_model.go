@@ -50,11 +50,20 @@ func GetVerifier(db *sql.DB, id int64) (Verifier, error) {
 }
 
 func UpdateVerifier(v *Verifier, db *sql.DB) (int64, error) {
-	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Public_Key_Sig = ?", v.Ip, v.Port, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.PublicKeySig)
+	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?,Public_Key_Sig=?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Public_Key_Sig = ?", v.Ip, v.Port, v.PublicKeySig, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.PublicKeySig)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+func UpdateVerifierByIpandPort(v *Verifier, db *sql.DB) (int64, error) {
+	result, err := db.Exec("UPDATE verifiers SET Ip = ?, Port = ?,Public_Key_Sig=?,Public_Key_Kem =?, Sig_Scheme = ?, Symmetric_Key = ?, Trust_Score = ?, Is_In_Committee = ? WHERE Ip = ? AND Port = ?", v.Ip, v.Port, v.PublicKeySig, v.PublicKeyKem, v.SigScheme, v.SymmetricKey, v.TrustScore, v.IsInCommittee, v.Ip, v.Port)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+
 }
 
 func RemoveVerifier(db *sql.DB, id int64) (int64, error) {

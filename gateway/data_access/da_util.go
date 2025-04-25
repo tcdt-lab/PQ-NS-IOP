@@ -26,7 +26,7 @@ func getRedisConnection() (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // No password set
-		DB:       1,  // Use default DB
+		DB:       7,  // Use default DB
 		Protocol: 2,  // Connection protocol
 	})
 	_, err := client.Ping(context.Background()).Result()

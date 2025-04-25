@@ -41,14 +41,14 @@ func (m *MLDSA) Sign(encryptedMsg []byte, sKey sign.PrivateKey, schemeName strin
 }
 
 func (m *MLDSA) Verify(pk sign.PublicKey, message []byte, signature []byte, schemeName string) (bool, error) {
-	pkk, _ := pk.MarshalBinary()
+	//pkk, _ := pk.MarshalBinary()
 	opts := &sign.SignatureOpts{}
 	scheme := schemes.ByName(schemeName)
 	if !scheme.Verify(pk, message, signature, opts) {
 		zap.L().Error("Failed signature verification", zap.String("Signature", hex.EncodeToString(signature[:32])), zap.String("Message", hex.EncodeToString(message)), zap.String("Signature", hex.EncodeToString(signature[:32])))
 		return false, errors.New("Failed Signature")
 	} else {
-		zap.L().Info("Successful verification", zap.String("Public Key", hex.EncodeToString(pkk[:32])), zap.String("Signature", hex.EncodeToString(signature[:32])), zap.String("Message", hex.EncodeToString(message)), zap.String("Signature", hex.EncodeToString(signature[:32])))
+		zap.L().Info("Successful verification", zap.String("Signature", hex.EncodeToString(signature[:32])), zap.String("Signature", hex.EncodeToString(signature[:32])))
 		return true, nil
 	}
 

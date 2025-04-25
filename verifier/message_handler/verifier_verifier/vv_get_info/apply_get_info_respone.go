@@ -42,6 +42,7 @@ func formatToDataGateways(vvGateways []verifier_verifier.VVInitInfoStructureGate
 		gateway.SigScheme = vvGateway.SigScheme
 		gateway.PublicKeyKem = vvGateway.GatewayPublicKeyKem
 		gateway.KemScheme = vvGateway.KemScheme
+		gateway.SymmetricKey = vvGateway.SymmetricKey
 		gateways = append(gateways, gateway)
 	}
 

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/go-rapidsnark/verifier"
+	"go.uber.org/zap"
 	"os"
+	"sync"
 	"test.org/protocol/pkg"
 	"test.org/protocol/pkg/gateway_verifier"
 	"verifier/config"
@@ -14,7 +16,7 @@ import (
 	"verifier/message_handler/util"
 )
 
-func CreateBalanceVerificationResponse(proof string, publicInputs string, requestId int64, senderPublicKey string, db *sql.DB, c config.Config) ([]byte, error) {
+func CreateBalanceVerificationResponse(proof string, publicInputs string, requestId int64, senderPublicKey string, db *sql.DB, c config.Config, mutex *sync.Mutex) ([]byte, error) {
 	// This function is not implemented yet.
 	protocolUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
 	vuDa := data_access.GenerateVerifierUserDA(db)
@@ -35,15 +37,17 @@ func CreateBalanceVerificationResponse(proof string, publicInputs string, reques
 	if err != nil {
 		return nil, err
 	}
-
+	//mutex.Lock()
 	proofResult, err := CheckProof(proof, publicInputs, c.ZKP.VerificationKeyPath)
+	//mutex.Unlock()
+
 	if err != nil {
 		return nil, err
 	}
 	resp := gateway_verifier.VerificationResponse{}
 	resp.RequestId = requestId
 	resp.VerificationResult = proofResult
-	msgInfo.Params = proof
+	msgInfo.Params = resp
 	msgInfo.OperationTypeId = pkg.GATEWAY_VERIFIER_BALANCE_VERIFICATION_RESPONSE_ID
 	msgInfoBytes, err := protocolUtil.ConvertMessageInfoToByte(msgInfo)
 	if err != nil {
@@ -68,6 +72,7 @@ func CreateBalanceVerificationResponse(proof string, publicInputs string, reques
 }
 
 func CheckProof(proof string, publicInputs string, verificationKeyPath string) (bool, error) {
+	zap.L().Info("CheckProof", zap.String("proof", proof), zap.String("publicInputs", publicInputs))
 	vk, err := os.ReadFile(verificationKeyPath)
 	var proofData types.ProofData
 	var pubSignals []string

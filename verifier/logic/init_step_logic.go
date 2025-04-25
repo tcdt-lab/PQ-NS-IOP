@@ -22,6 +22,9 @@ func InitStepLogic(db *sql.DB) (int64, int64, error) {
 	var bootstrapVerfier = data.Verifier{}
 	var verifierDataAccess = data_access.GenerateVerifierDA(db)
 	protoUtil := util.ProtocolUtilGenerator(c.Security.CryptographyScheme)
+	//asymHandler := asymmetric.NewAsymmetricHandler(c.Security.CryptographyScheme)
+	//skDSAStr, pkDSAStr, err := asymHandler.DSKeyGen(c.Security.DSAScheme)
+	//skKEMStr, pkKEMStr, err := asymHandler.KEMKeyGen(c.Security.KEMScheme)
 	secKeyKem, pubKeyKem, err := protoUtil.AsymmetricHandler.KEMKeyGen(c.Security.KEMScheme)
 	if err != nil {
 		return 0, 0, err
